@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bots\BotContainer.cs" />
     <Compile Include="Context\ApplicationContext.cs" />
     <Compile Include="GeoLocation\Countries.cs" />
     <Compile Include="GeoLocation\GeoIpHelper.cs" />
