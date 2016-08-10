@@ -1,0 +1,2 @@
+# BulbaGO
+PokemonGo Multibot Client
