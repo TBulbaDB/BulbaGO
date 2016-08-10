@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BulbaGO.Base.Bots;
 using BulbaGO.Base.Context;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.Logging;
@@ -23,16 +24,15 @@ namespace BulbaGO.TestConsole
                 Console.ReadKey();
                 return;
             }
-            Log4NetHelper.AddAppender(Log4NetHelper.ConsoleAppender(Level.Info));
+            Log4NetHelper.AddAppender(Log4NetHelper.ConsoleAppender(Level.All));
             ApplicationContext.Initialize();
 
-            var socksProxyContainers = new List<SocksWebProxyContainer>();
-            for (var i =1; i <= 10; i++)
+            Task.Run(async () =>
             {
-                socksProxyContainers.Add(SocksWebProxyContainer.GetNeWebProxyContainer("US"));
-            }
-            var startJobs = socksProxyContainers.Select(s => s.Start()).ToArray();
-            Task.WaitAll(startJobs);
+                var bot = await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB005", "qq12534", "US");
+                await bot.Start();
+            }).Wait();
+
 
             Console.WriteLine("Finished, press any key to exit");
             Console.ReadKey();

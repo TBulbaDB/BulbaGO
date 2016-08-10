@@ -69,10 +69,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bots\Bot.cs" />
     <Compile Include="Bots\BotContainer.cs" />
+    <Compile Include="Bots\BotProcess.cs" />
+    <Compile Include="Bots\IBotConfigCreator.cs" />
+    <Compile Include="Bots\NecroBotConfigCreator.cs" />
     <Compile Include="Context\ApplicationContext.cs" />
     <Compile Include="GeoLocation\Countries.cs" />
     <Compile Include="GeoLocation\GeoIpHelper.cs" />
+    <Compile Include="GeoLocation\StartLocations.cs" />
     <Compile Include="HttpUtils\SuperHttpClient.cs" />
     <Compile Include="HttpUtils\HttpHelpers.cs" />
     <Compile Include="Logging\Log4NetHelper.cs" />
@@ -100,6 +105,101 @@
     <Compile Include="SocksProxy\SocksWebProxy\SocksWebProxy.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Bots\NecroBot\cert.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\auth.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\LastPos.ini" />
+    <None Include="Bots\NecroBot\Config\Translations\translation.ca.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.cs.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.da.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.de.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.en.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.es.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.et.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.fr.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.gr.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.hu.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.id.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.it.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.lt.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.nl.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.no.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.pl.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.pt-br.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.pt-pt.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.ro.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.ru_RU.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.sv.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.th.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.tr.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.uk_UA.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.vi.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.zh_CN.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\Config\Translations\translation.zh_tw.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\NecroBot.exe.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bots\NecroBot\temp\incubators.json" />
     <None Include="GeoLocation\GeoLite2-Country.mmdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -130,6 +230,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Bots\NecroBot\Logs\NecroBot-2016-08-10-22.txt" />
+    <Content Include="Bots\NecroBot\NecroBot.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Bots\NecroBot\Resources\encrypt.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Tor\Tor\libeay32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
