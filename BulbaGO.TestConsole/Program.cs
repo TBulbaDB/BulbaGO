@@ -26,20 +26,15 @@ namespace BulbaGO.TestConsole
             Log4NetHelper.AddAppender(Log4NetHelper.ConsoleAppender(Level.Info));
             ApplicationContext.Initialize();
 
-            foreach (var regionInfo in Countries.All)
-            {
-                Console.WriteLine("{0} [{1}]", regionInfo.EnglishName, regionInfo.TwoLetterISORegionName);
-            }
-            //{
             var socksProxyContainers = new List<SocksWebProxyContainer>();
-            for (var i = 9001; i <= 9010; i++)
+            for (var i =1; i <= 10; i++)
             {
-                socksProxyContainers.Add(SocksWebProxyContainer.GetSocksWebProxy(i));
+                socksProxyContainers.Add(SocksWebProxyContainer.GetNeWebProxyContainer("US"));
             }
             var startJobs = socksProxyContainers.Select(s => s.Start()).ToArray();
             Task.WaitAll(startJobs);
 
-
+            Console.WriteLine("Finished, press any key to exit");
             Console.ReadKey();
             //}).Wait();
         }
