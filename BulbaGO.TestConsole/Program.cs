@@ -29,7 +29,7 @@ namespace BulbaGO.TestConsole
 
             Task.Run(async () =>
             {
-                var bot = await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB005", "qq12534", "US");
+                var bot = await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "ceciliakea637271", "xfkc7vpu!", "US");
                 await bot.Start();
             }).Wait();
 
