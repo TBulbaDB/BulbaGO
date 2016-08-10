@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using com.LandonKey.SocksWebProxy;
-using com.LandonKey.SocksWebProxy.Proxy;
-using Org.Mentalis.Network.ProxySocket;
+using log4net;
 
 namespace BulbaGO.Base.HttpUtils
 {
     public static class HttpHelpers
     {
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(HttpHelpers));
+
         public static async Task<string> WhatIsMyIp(IWebProxy proxy = null)
         {
             try
@@ -31,11 +28,11 @@ namespace BulbaGO.Base.HttpUtils
             }
             catch (HttpRequestException hre)
             {
-                Debug.WriteLine(hre.ToString());
+                Logger.Error($"[{hre.GetType().Name}] {hre.Message}");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.ToString());
+                Logger.Error($"[{ex.GetType().Name}] {ex.Message}");
             }
 
             return null;

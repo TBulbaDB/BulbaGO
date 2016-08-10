@@ -2,10 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Org.Mentalis.Proxy.Http;
-using Org.Mentalis.Network.ProxySocket;
 using com.LandonKey.SocksWebProxy.Proxy;
 
 namespace com.LandonKey.SocksWebProxy

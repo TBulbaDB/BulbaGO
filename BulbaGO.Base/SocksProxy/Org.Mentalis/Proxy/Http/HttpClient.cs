@@ -32,11 +32,7 @@ using System;
 using System.Net;
 using System.Text;
 using System.Net.Sockets;
-using System.Collections;
 using System.Collections.Specialized;
-using System.Threading;
-using Org.Mentalis.Proxy;
-using Org.Mentalis.Network.ProxySocket;
 
 namespace Org.Mentalis.Proxy.Http {
 

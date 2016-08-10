@@ -69,15 +69,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Context\ApplicationContext.cs" />
-    <Compile Include="GeoIp\GeoIpHelper.cs" />
+    <Compile Include="GeoLocation\Countries.cs" />
+    <Compile Include="GeoLocation\GeoIpHelper.cs" />
     <Compile Include="HttpUtils\SuperHttpClient.cs" />
     <Compile Include="HttpUtils\HttpHelpers.cs" />
     <Compile Include="Logging\Log4NetHelper.cs" />
     <Compile Include="MongoDB\MongoHelper.cs" />
     <Compile Include="ProcessHandling\ChildProcessTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SocksProxy\IpTools.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthMethod.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthNone.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthUserPass.cs" />
@@ -98,7 +99,7 @@
     <Compile Include="SocksProxy\SocksWebProxy\SocksWebProxy.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GeoIp\GeoLite2-Country.mmdb">
+    <None Include="GeoLocation\GeoLite2-Country.mmdb">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

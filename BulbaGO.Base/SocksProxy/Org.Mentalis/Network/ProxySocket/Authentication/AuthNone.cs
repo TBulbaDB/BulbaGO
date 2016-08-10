@@ -28,8 +28,6 @@
   OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-using System;
-using System.Net;
 using System.Net.Sockets;
 
 namespace Org.Mentalis.Network.ProxySocket.Authentication {
