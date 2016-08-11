@@ -17,6 +17,19 @@ using MaxMind.GeoIP2.Model;
 
 namespace BulbaGO.Base.SocksProxy
 {
+    public enum ProxyProcessState
+    {
+        Unknown,
+        Starting,
+        Started,
+        CheckingExitAddress,
+        Connected,
+        CouldNotConnect,
+        Terminating,
+        Terminated,
+        CouldNotStart
+    }
+
     public class SocksWebProxyContainer : IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SocksWebProxyContainer));
@@ -57,17 +70,17 @@ namespace BulbaGO.Base.SocksProxy
         private static readonly HashSet<int> UsedPorts = new HashSet<int>();
         private static readonly HashSet<string> ExitAddresses = new HashSet<string>();
 
-        public static SocksWebProxyContainer GetNeWebProxyContainer()
+        public static SocksWebProxyContainer GetNeWebProxyContainer(string botName)
         {
-            return GetNeWebProxyContainer(new List<string>());
+            return GetNeWebProxyContainer(botName, new List<string>());
         }
 
-        public static SocksWebProxyContainer GetNeWebProxyContainer(string isoTwoLetterCountryCode)
+        public static SocksWebProxyContainer GetNeWebProxyContainer(string botName, string isoTwoLetterCountryCode)
         {
-            return GetNeWebProxyContainer(new List<string> { isoTwoLetterCountryCode });
+            return GetNeWebProxyContainer(botName, new List<string> { isoTwoLetterCountryCode });
         }
 
-        public static SocksWebProxyContainer GetNeWebProxyContainer(List<string> isoTwoLetterCountryCodes)
+        public static SocksWebProxyContainer GetNeWebProxyContainer(string botName, List<string> isoTwoLetterCountryCodes)
         {
             var proxyPort = PortRandomizer.Next(MinPort, MaxPort);
             while (UsedPorts.Contains(proxyPort) || IpTools.IsPortInUse(proxyPort) || IpTools.IsPortInUse(proxyPort + 1000))
@@ -75,7 +88,7 @@ namespace BulbaGO.Base.SocksProxy
                 proxyPort = PortRandomizer.Next(MinPort, MaxPort);
             }
             UsedPorts.Add(proxyPort);
-            return new SocksWebProxyContainer { TorCountries = isoTwoLetterCountryCodes, SocksPort = proxyPort };
+            return new SocksWebProxyContainer { TorCountries = isoTwoLetterCountryCodes, SocksPort = proxyPort, BotName = botName};
         }
 
         private SocksWebProxyContainer()
@@ -92,7 +105,9 @@ namespace BulbaGO.Base.SocksProxy
         public List<string> TorCountries { get; set; }
         public bool Connected { get; set; }
         public bool InUse { get; set; }
+        public string BotName { get; private set; }
 
+        public ProxyProcessState State { get; private set; }
         public event EventHandler ProcessExited;
 
         private bool _exitRequested;
@@ -103,10 +118,10 @@ namespace BulbaGO.Base.SocksProxy
 
         public async Task Start(int retries = 3, long timeout = 30000)
         {
-
+            State = ProxyProcessState.Starting;
             for (int i = 0; i <= retries; i++)
             {
-                Logger.Info($"Launching Tor on Port {SocksPort}");
+                Logger.Info($"{BotName} Launching Tor on Port {SocksPort}");
                 LaunchTorInstance();
                 _timeoutChecker = new Stopwatch();
                 _timeoutChecker.Start();
@@ -116,18 +131,20 @@ namespace BulbaGO.Base.SocksProxy
                     CheckIfConnected();
                     if (!Connected && _timeoutChecker.ElapsedMilliseconds > timeout)
                     {
-                        Logger.Warn($"Proxy launch on port {SocksPort} has timed out, retrying.");
+                        Logger.Warn($"{BotName} Proxy launch on port {SocksPort} has timed out, retrying.");
                         break;
                     }
                 }
-                if(!Connected) continue;
+                if (!Connected) continue;
                 UpdateProxy();
                 if (await UpdateExitAddress())
                 {
+                    State = ProxyProcessState.Connected;
                     return;
                 }
             }
-            Logger.Error("Failed to establish a tor connection with the requested parameters");
+            State = ProxyProcessState.CouldNotConnect;
+            Logger.Error($"{BotName} Failed to establish a tor connection with the requested parameters");
 
         }
 
@@ -139,33 +156,40 @@ namespace BulbaGO.Base.SocksProxy
 
         private async Task<bool> UpdateExitAddress()
         {
+            State = ProxyProcessState.CheckingExitAddress;
             ExitAddress = await HttpHelpers.WhatIsMyIp(Proxy);
             if (string.IsNullOrWhiteSpace(ExitAddress))
             {
-                Logger.Warn($"Proxy on port {SocksPort} has empty exit address, retrying.");
+                Logger.Warn($"{BotName} Proxy on port {SocksPort} has empty exit address, retrying.");
                 return false;
             }
             if (ExitAddresses.Contains(ExitAddress))
             {
-                Logger.Warn($"Proxy on port {SocksPort} has duplicate exit address, retrying.");
+                Logger.Warn($"{BotName} Proxy on port {SocksPort} has duplicate exit address, retrying.");
                 return false;
             }
             Country = GeoIpHelper.GetCountry(ExitAddress);
             if (TorCountries != null && TorCountries.Count > 0 && (Country.IsoCode == null || !TorCountries.Contains(Country.IsoCode)))
             {
                 var countries = "{" + string.Join(",", TorCountries) + "}";
-                Logger.Warn($"Proxy on port {SocksPort} has was supposed to be in {countries}, but the resulting connection ended up in {Country.IsoCode ?? "Unknown Country"}, retrying.");
+                Logger.Warn($"{BotName} Proxy on port {SocksPort} has was supposed to be in {countries}, but the resulting connection ended up in {Country.IsoCode ?? "Unknown Country"}, retrying.");
                 return false;
             }
             ExitAddresses.Add(ExitAddress);
-            Logger.Info($"Proxy on port {SocksPort} is now connected to {Country.Name} [{Country.IsoCode}] with ip address {ExitAddress}");
+            State = ProxyProcessState.Connected;
+            Logger.Info($"{BotName} Proxy on port {SocksPort} is now connected to {Country.Name} [{Country.IsoCode}] with ip address {ExitAddress}");
             return true;
         }
 
 
-        private void KillTorInstance()
+        public void TerminateProcess()
         {
-            if (TorProcess == null || TorProcess.HasExited) return;
+            State = ProxyProcessState.Terminating;
+            if (TorProcess == null || TorProcess.HasExited)
+            {
+                State = ProxyProcessState.Unknown;
+                return;
+            }
             try
             {
                 var torProcess = TorProcess;
@@ -179,15 +203,16 @@ namespace BulbaGO.Base.SocksProxy
             }
             catch (Exception ex)
             {
-                Logger.Error($"An error occured while killing the tor process: ({ex.GetType().Name}) {ex.Message}");
+                Logger.Error($"{BotName} An error occured while killing the tor process: ({ex.GetType().Name}) {ex.Message}");
             }
+            State = ProxyProcessState.Terminated;
         }
 
         private void LaunchTorInstance()
         {
+            State = ProxyProcessState.Starting;
             _consoleOutput = new StringBuilder();
-            KillTorInstance();
-
+            
             TorProcess = new Process();
             TorProcess.EnableRaisingEvents = true;
 
@@ -217,11 +242,13 @@ namespace BulbaGO.Base.SocksProxy
             {
                 //you may allow for the process to be re-used (started = false) 
                 //but I'm not sure about the guarantees of the Exited event in such a case
+                State = ProxyProcessState.CouldNotStart;
                 throw new InvalidOperationException("Could not start process: " + TorProcess);
             }
             ChildProcessTracker.AddProcess(TorProcess);
             TorProcess.BeginOutputReadLine();
             TorProcess.BeginErrorReadLine();
+            State = ProxyProcessState.Started;
         }
 
         private void CheckIfConnected()
@@ -231,6 +258,7 @@ namespace BulbaGO.Base.SocksProxy
 
         private void ResetRunningState()
         {
+            State = ProxyProcessState.Unknown;
             Connected = false;
             TorProcess = null;
             ExitAddresses.Remove(ExitAddress);
@@ -240,7 +268,10 @@ namespace BulbaGO.Base.SocksProxy
 
         private void Process_Exited(object sender, EventArgs e)
         {
-            OnProcessExit();
+            if (State != ProxyProcessState.Terminating && State != ProxyProcessState.Terminated)
+            {
+                OnProcessExit();
+            }
             ResetRunningState();
         }
 
@@ -249,12 +280,14 @@ namespace BulbaGO.Base.SocksProxy
             var process = sender as Process;
             if (process != null && process.HasExited)
             {
-                Logger.Warn($"Process exited, exit was requested: {_exitRequested}, exit code is {process.ExitCode}, current running state is {Connected}");
+                Logger.Warn($"{BotName} Process exited, exit was requested: {_exitRequested}, exit code is {process.ExitCode}, current running state is {Connected}");
                 _exitRequested = false;
                 return;
             }
-
-            Logger.Error(e.Data);
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                Logger.Error($"{BotName}  {e.Data}");
+            }
 
         }
 
@@ -264,13 +297,13 @@ namespace BulbaGO.Base.SocksProxy
             {
                 _consoleOutput.Append(e.Data);
             }
-            Logger.Debug(e.Data);
+            Logger.Debug($"{BotName} {e.Data}");
         }
 
         public void Dispose()
         {
-            Logger.Debug("Disposing");
-            KillTorInstance();
+            Logger.Debug($"{BotName} Disposing");
+            TerminateProcess();
         }
 
         protected virtual void OnProcessExit()

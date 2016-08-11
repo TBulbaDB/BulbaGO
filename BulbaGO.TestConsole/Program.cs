@@ -38,13 +38,13 @@ namespace BulbaGO.TestConsole
 
             var taskList = new[]
             {
-                Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB001", "qq12534", "US"),
-                Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB002", "qq12534", "US")
+                Bot.GetInstance(AuthType.Ptc, "TBulbaDB001", "qq12534", "US"),
+                Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US")
             };
             Task.WaitAll(taskList);
 
             bots = taskList.Select(t => t.Result).ToList();
-            var botTasks = bots.Select(b => b.Start()).ToArray();
+            var botTasks = bots.Select(b => b.Start(BotType.NecroBot)).ToArray();
             Task.WaitAll(botTasks);
 
 
