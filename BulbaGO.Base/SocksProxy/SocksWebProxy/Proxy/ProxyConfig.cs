@@ -1,7 +1,7 @@
-﻿using Org.Mentalis.Network.ProxySocket;
-using System.Net;
+﻿using System.Net;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket;
 
-namespace com.LandonKey.SocksWebProxy.Proxy
+namespace BulbaGO.Base.SocksProxy.SocksWebProxy.Proxy
 {
     public class ProxyConfig
     {

@@ -1,8 +1,8 @@
-﻿using Org.Mentalis.Proxy;
-using System;
+﻿using System;
 using System.Net.Sockets;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy;
 
-namespace com.LandonKey.SocksWebProxy.Proxy
+namespace BulbaGO.Base.SocksProxy.SocksWebProxy.Proxy
 {
     public sealed class ProxyListener : Org.Mentalis.Proxy.Http.HttpListener
     {

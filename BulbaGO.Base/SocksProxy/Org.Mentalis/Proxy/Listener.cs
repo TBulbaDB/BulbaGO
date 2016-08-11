@@ -29,11 +29,11 @@
 */
 
 using System;
+using System.Collections;
 using System.Net;
 using System.Net.Sockets;
-using System.Collections;
 
-namespace Org.Mentalis.Proxy {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy {
 
 ///<summary>Specifies the basic methods and properties of a <c>Listener</c> object. This is an abstract class and must be inherited.</summary>
 ///<remarks>The Listener class provides an abstract base class that represents a listening socket of the proxy server. Descendant classes further specify the protocol that is used between those two connections.</remarks>

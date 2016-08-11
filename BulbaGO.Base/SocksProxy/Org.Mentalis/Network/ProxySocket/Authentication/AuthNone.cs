@@ -30,7 +30,7 @@
 
 using System.Net.Sockets;
 
-namespace Org.Mentalis.Network.ProxySocket.Authentication {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket.Authentication {
 	/// <summary>
 	/// This class implements the 'No Authentication' scheme.
 	/// </summary>

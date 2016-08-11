@@ -32,7 +32,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Org.Mentalis.Network.ProxySocket.Authentication {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket.Authentication {
 	/// <summary>
 	/// This class implements the 'username/password authentication' scheme.
 	/// </summary>

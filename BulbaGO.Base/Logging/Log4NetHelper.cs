@@ -27,7 +27,7 @@ namespace BulbaGO.Base.Logging
             appender.AddMapping(new ColoredConsoleAppender.LevelColors { ForeColor = ColoredConsoleAppender.Colors.White, Level = Level.Debug });
             appender.AddMapping(new ColoredConsoleAppender.LevelColors { ForeColor = ColoredConsoleAppender.Colors.Red, Level = Level.Error });
             var layout = new PatternLayout();
-            layout.ConversionPattern = "%date [%thread] %-5level - %message%newline";
+            layout.ConversionPattern = "%date{HH:mm:ss} %logger [%thread] %-5level - %message%newline";
             layout.ActivateOptions();
             appender.Layout = layout;
             appender.Threshold = threshold;

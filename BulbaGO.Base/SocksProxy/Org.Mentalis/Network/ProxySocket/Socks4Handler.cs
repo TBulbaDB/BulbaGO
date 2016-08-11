@@ -33,7 +33,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Org.Mentalis.Network.ProxySocket {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket {
 	/// <summary>
 	/// Implements the SOCKS4[A] protocol.
 	/// </summary>

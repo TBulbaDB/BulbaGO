@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using BulbaGO.Base.ProcessHandling;
-using BulbaGO.Base.SocksProxy;
+using BulbaGO.Base.Bots;
 using log4net;
 
-namespace BulbaGO.Base.Bots
+namespace BulbaGO.Base.ProcessManagement
 {
     public enum BotProcessState
     {

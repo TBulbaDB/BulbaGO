@@ -32,7 +32,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Org.Mentalis.Proxy {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy {
 
 /// <summary>References the callback method to be called when the <c>Client</c> object disconnects from the local client and the remote server.</summary>
 /// <param name="client">The <c>Client</c> that has closed its connections.</param>

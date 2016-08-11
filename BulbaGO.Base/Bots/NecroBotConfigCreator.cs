@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using BulbaGO.Base.SocksProxy;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

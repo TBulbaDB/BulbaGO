@@ -30,7 +30,7 @@
 
 using System;
 
-namespace Org.Mentalis.Network.ProxySocket {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket {
 	/// <summary>
 	/// The exception that is thrown when a proxy error occurs.
 	/// </summary>

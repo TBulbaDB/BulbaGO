@@ -1,12 +1,12 @@
-﻿using Org.Mentalis.Network.ProxySocket;
-using Org.Mentalis.Proxy;
-using Org.Mentalis.Proxy.Http;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy.Http;
 
-namespace com.LandonKey.SocksWebProxy.Proxy
+namespace BulbaGO.Base.SocksProxy.SocksWebProxy.Proxy
 {
     public sealed class ProxyClient : HttpClient
     {

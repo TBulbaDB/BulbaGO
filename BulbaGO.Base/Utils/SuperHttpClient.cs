@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
 
-namespace BulbaGO.Base.HttpUtils
+namespace BulbaGO.Base.Utils
 {
     public class SuperHttpClient : HttpClient
     {

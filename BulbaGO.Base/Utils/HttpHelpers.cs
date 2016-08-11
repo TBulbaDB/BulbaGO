@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using log4net;
 
-namespace BulbaGO.Base.HttpUtils
+namespace BulbaGO.Base.Utils
 {
     public static class HttpHelpers
     {

@@ -70,20 +70,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bots\Bot.cs" />
-    <Compile Include="Bots\BotProcessContainer.cs" />
+    <Compile Include="ProcessManagement\AsyncProcess.cs" />
+    <Compile Include="ProcessManagement\BotProcess.cs" />
+    <Compile Include="ProcessManagement\BotProcessContainer.cs" />
     <Compile Include="Bots\IBotConfigCreator.cs" />
     <Compile Include="Bots\NecroBotConfigCreator.cs" />
     <Compile Include="Context\ApplicationContext.cs" />
     <Compile Include="GeoLocation\Countries.cs" />
     <Compile Include="GeoLocation\GeoIpHelper.cs" />
     <Compile Include="GeoLocation\StartLocations.cs" />
-    <Compile Include="HttpUtils\SuperHttpClient.cs" />
-    <Compile Include="HttpUtils\HttpHelpers.cs" />
+    <Compile Include="ProcessManagement\ProcessState.cs" />
+    <Compile Include="Utils\SuperHttpClient.cs" />
+    <Compile Include="Utils\HttpHelpers.cs" />
     <Compile Include="Logging\Log4NetHelper.cs" />
     <Compile Include="MongoDB\MongoHelper.cs" />
-    <Compile Include="ProcessHandling\ChildProcessTracker.cs" />
+    <Compile Include="ProcessManagement\ChildProcessTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SocksProxy\IpTools.cs" />
+    <Compile Include="Utils\IpTools.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthMethod.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthNone.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Network\ProxySocket\Authentication\AuthUserPass.cs" />
@@ -97,7 +100,7 @@
     <Compile Include="SocksProxy\Org.Mentalis\Proxy\Http\HttpClient.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Proxy\Http\HttpListener.cs" />
     <Compile Include="SocksProxy\Org.Mentalis\Proxy\Listener.cs" />
-    <Compile Include="SocksProxy\SocksWebProxyContainer.cs" />
+    <Compile Include="ProcessManagement\SocksWebProxyContainer.cs" />
     <Compile Include="SocksProxy\SocksWebProxy\Proxy\ProxyClient.cs" />
     <Compile Include="SocksProxy\SocksWebProxy\Proxy\ProxyConfig.cs" />
     <Compile Include="SocksProxy\SocksWebProxy\Proxy\ProxyListener.cs" />

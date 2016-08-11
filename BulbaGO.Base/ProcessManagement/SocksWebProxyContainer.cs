@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using BulbaGO.Base.GeoLocation;
-using BulbaGO.Base.HttpUtils;
-using BulbaGO.Base.ProcessHandling;
-using com.LandonKey.SocksWebProxy;
-using com.LandonKey.SocksWebProxy.Proxy;
+using BulbaGO.Base.SocksProxy.SocksWebProxy;
+using BulbaGO.Base.SocksProxy.SocksWebProxy.Proxy;
+using BulbaGO.Base.Utils;
 using log4net;
 using MaxMind.GeoIP2.Model;
 
-namespace BulbaGO.Base.SocksProxy
+namespace BulbaGO.Base.ProcessManagement
 {
     public enum ProxyProcessState
     {

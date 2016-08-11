@@ -8,7 +8,6 @@ using BulbaGO.Base.Bots;
 using BulbaGO.Base.Context;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.Logging;
-using BulbaGO.Base.SocksProxy;
 using log4net.Core;
 
 namespace BulbaGO.TestConsole

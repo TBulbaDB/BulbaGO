@@ -32,7 +32,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 
-namespace Org.Mentalis.Proxy.Http {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy.Http {
 
 ///<summary>Listens on a specific port on the proxy server and forwards all incoming HTTP traffic to the appropriate server.</summary>
 public class HttpListener : Listener {

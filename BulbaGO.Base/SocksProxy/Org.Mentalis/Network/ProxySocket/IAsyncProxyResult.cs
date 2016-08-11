@@ -31,7 +31,7 @@
 using System;
 using System.Threading;
 
-namespace Org.Mentalis.Network.ProxySocket {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket {
 	/// <summary>
 	/// A class that implements the IAsyncResult interface. Objects from this class are returned by the BeginConnect method of the ProxySocket class.
 	/// </summary>

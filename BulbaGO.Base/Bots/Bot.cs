@@ -5,8 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.MongoDB;
-using BulbaGO.Base.SocksProxy;
-using com.LandonKey.SocksWebProxy;
+using BulbaGO.Base.ProcessManagement;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -23,6 +22,21 @@ namespace BulbaGO.Base.Bots
         Ptc,
         Google
     }
+
+    public enum BotState
+    {
+        Unknown,
+        ProxyProcessStarting,
+        ProxyProcessStarted,
+        BotProcessStarting,
+        BotProcessStarted,
+        Running,
+        ProxyError,
+        BotError,
+        Terminating,
+        Terminated
+    }
+
     public class Bot
     {
         [BsonId]

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using com.LandonKey.SocksWebProxy.Proxy;
+using BulbaGO.Base.SocksProxy.SocksWebProxy.Proxy;
 
-namespace com.LandonKey.SocksWebProxy
+namespace BulbaGO.Base.SocksProxy.SocksWebProxy
 {
     public class SocksWebProxy:IWebProxy
     {

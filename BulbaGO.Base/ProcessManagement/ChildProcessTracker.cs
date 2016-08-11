@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace BulbaGO.Base.ProcessHandling
+namespace BulbaGO.Base.ProcessManagement
 {
     /// <summary>
     /// Allows processes to be automatically killed if this parent process unexpectedly quits.

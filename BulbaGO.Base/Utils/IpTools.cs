@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Net.NetworkInformation;
 
-namespace BulbaGO.Base.SocksProxy
+namespace BulbaGO.Base.Utils
 {
     public static class IpTools
     {

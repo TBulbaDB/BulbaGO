@@ -32,9 +32,9 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using Org.Mentalis.Network.ProxySocket.Authentication;
+using BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket.Authentication;
 
-namespace Org.Mentalis.Network.ProxySocket {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Network.ProxySocket {
 	/// <summary>
 	/// Implements the SOCKS5 protocol.
 	/// </summary>

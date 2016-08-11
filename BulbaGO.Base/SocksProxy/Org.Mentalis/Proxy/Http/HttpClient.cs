@@ -29,12 +29,12 @@
 */
 
 using System;
-using System.Net;
-using System.Text;
-using System.Net.Sockets;
 using System.Collections.Specialized;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 
-namespace Org.Mentalis.Proxy.Http {
+namespace BulbaGO.Base.SocksProxy.Org.Mentalis.Proxy.Http {
 
 ///<summary>Relays HTTP data between a remote host and a local client.</summary>
 ///<remarks>This class supports both HTTP and HTTPS.</remarks>
