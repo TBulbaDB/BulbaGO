@@ -46,33 +46,15 @@ namespace BulbaGO.Base.Bots
             bot.Password = password;
             bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
             bot.Location = StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode);
-            bot.ProxyContainer = SocksWebProxyContainer.GetNeWebProxyContainer(twoLetterIsoCountryCode);
-            await bot.ProxyContainer.Start();
-            if (bot.ProxyContainer.Connected)
-            {
-                switch (botType)
-                {
-                    case BotType.NecroBot:
-                        NecroBot.CreateBotConfig(bot);
-                        break;
-                }
-                bot.BotProcessContainer = new BotProcessContainer(bot);
-            }
+            await bot.SetContainers();
 
             return bot;
         }
 
-        public async Task Start()
+        private async Task SetContainers()
         {
-            if (ProxyContainer != null && ProxyContainer.Connected && BotProcessContainer != null)
-            {
-                BotProcessContainer.Start();
-            }
-        }
-
-        public async void Restart()
-        {
-            ProxyContainer = SocksWebProxyContainer.GetNeWebProxyContainer(TwoLetterIsoCountryCode); ;
+            ProxyContainer = SocksWebProxyContainer.GetNeWebProxyContainer(TwoLetterIsoCountryCode);
+            ProxyContainer.ProcessExited += ProxyContainer_ProcessExited;
             await ProxyContainer.Start();
             if (ProxyContainer.Connected)
             {
@@ -83,8 +65,41 @@ namespace BulbaGO.Base.Bots
                         break;
                 }
                 BotProcessContainer = new BotProcessContainer(this);
-                Start();
+                BotProcessContainer.ProcessExited += BotProcessContainer_ProcessExited;
             }
+        }
+
+        private void BotProcessContainer_ProcessExited(object sender, EventArgs e)
+        {
+            ResetContainers().Wait();
+            Start().Wait();
+        }
+
+        private async Task ResetContainers()
+        {
+            BotProcessContainer = null;
+            ProxyContainer = null;
+            await SetContainers();
+        }
+
+        private void ProxyContainer_ProcessExited(object sender, EventArgs e)
+        {
+            ResetContainers().Wait();
+            Start().Wait();
+        }
+
+        public async Task Start()
+        {
+            if (ProxyContainer != null && ProxyContainer.Connected && BotProcessContainer != null)
+            {
+                await BotProcessContainer.Start();
+            }
+        }
+
+        public async void Restart()
+        {
+            await ResetContainers();
+            await Start();
         }
 
     }

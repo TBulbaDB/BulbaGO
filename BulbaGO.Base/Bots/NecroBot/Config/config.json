@@ -40,7 +40,7 @@
   "KeepMinOperator": "or",
   "UseKeepMinLvl": false,
   "PrioritizeIvOverCp": false,
-  "KeepMinDuplicatePokemon": 0,
+  "KeepMinDuplicatePokemon": 1,
   "UseGpxPathing": false,
   "GpxFile": "GPXPath.GPX",
   "VerboseRecycling": true,

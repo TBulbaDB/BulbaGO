@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,11 +28,24 @@ namespace BulbaGO.TestConsole
             Log4NetHelper.AddAppender(Log4NetHelper.ConsoleAppender(Level.All));
             ApplicationContext.Initialize();
 
-            Task.Run(async () =>
+            var bots = new List<Bot>();
+            //Task.Run(async () =>
+            //{
+            //    bots.Add(await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB001", "qq12534", "US"));
+            //    bots.Add(await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB002", "qq12534", "US"));
+            //}).Wait();
+
+
+            var taskList = new[]
             {
-                var bot = await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "ceciliakea637271", "xfkc7vpu!", "US");
-                await bot.Start();
-            }).Wait();
+                Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB001", "qq12534", "US"),
+                Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB002", "qq12534", "US")
+            };
+            Task.WaitAll(taskList);
+
+            bots = taskList.Select(t => t.Result).ToList();
+            var botTasks = bots.Select(b => b.Start()).ToArray();
+            Task.WaitAll(botTasks);
 
 
             Console.WriteLine("Finished, press any key to exit");

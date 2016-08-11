@@ -93,9 +93,13 @@ namespace BulbaGO.Base.SocksProxy
         public bool Connected { get; set; }
         public bool InUse { get; set; }
 
+        public event EventHandler ProcessExited;
+
         private bool _exitRequested;
         private StringBuilder _consoleOutput;
         private Stopwatch _timeoutChecker;
+
+
 
         public async Task Start(int retries = 3, long timeout = 30000)
         {
@@ -236,6 +240,7 @@ namespace BulbaGO.Base.SocksProxy
 
         private void Process_Exited(object sender, EventArgs e)
         {
+            OnProcessExit();
             ResetRunningState();
         }
 
@@ -266,6 +271,11 @@ namespace BulbaGO.Base.SocksProxy
         {
             Logger.Debug("Disposing");
             KillTorInstance();
+        }
+
+        protected virtual void OnProcessExit()
+        {
+            ProcessExited?.Invoke(this, EventArgs.Empty);
         }
     }
 }

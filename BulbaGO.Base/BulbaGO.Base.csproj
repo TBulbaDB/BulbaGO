@@ -70,8 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bots\Bot.cs" />
-    <Compile Include="Bots\BotContainer.cs" />
-    <Compile Include="Bots\BotProcess.cs" />
+    <Compile Include="Bots\BotProcessContainer.cs" />
     <Compile Include="Bots\IBotConfigCreator.cs" />
     <Compile Include="Bots\NecroBotConfigCreator.cs" />
     <Compile Include="Context\ApplicationContext.cs" />

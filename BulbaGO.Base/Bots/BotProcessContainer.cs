@@ -10,19 +10,22 @@ using log4net;
 
 namespace BulbaGO.Base.Bots
 {
-    public class BotProcessContainer
+    public class BotProcessContainer : IDisposable
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(BotProcessContainer));
         private readonly Bot _bot;
         public Process BotProcess { get; private set; }
+
+        public event EventHandler ProcessExited;
 
         public BotProcessContainer(Bot bot)
         {
             _bot = bot;
         }
 
-        public void Start()
+        public async Task Start()
         {
+            Logger.Info($"{_bot.Username} Launching bot process.");
             BotProcess = new Process();
             BotProcess.EnableRaisingEvents = true;
             BotProcess.StartInfo = new ProcessStartInfo
@@ -52,12 +55,14 @@ namespace BulbaGO.Base.Bots
             ChildProcessTracker.AddProcess(BotProcess);
             BotProcess.BeginOutputReadLine();
             BotProcess.BeginErrorReadLine();
-            BotProcess.WaitForExit();
+            await Task.Delay(100);
+            Logger.Info($"{_bot.Username} Successfully launched bot process with pid {BotProcess.Id}.");
+
         }
 
         private void BotProcess_Exited(object sender, EventArgs e)
         {
-
+            OnProcessExited();
         }
 
         private void BotProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
@@ -82,15 +87,32 @@ namespace BulbaGO.Base.Bots
         {
             if (e.Data != null)
             {
-                if (
-                    e.Data.Contains(
+                if (e.Data.Contains(
                         "(ATTENTION) No usable PokeStops found in your area. Is your maximum distance too small?"))
                 {
                     TerminateProcess();
                     _bot.Restart();
+                    return;
                 }
+                if (e.Data.Contains("INVALID PROXY"))
+                {
+                    TerminateProcess();
+                    _bot.Restart();
+                    return;
+                }
+
                 Logger.Debug($"{_bot.Username} {e.Data}");
             }
+        }
+
+        public void Dispose()
+        {
+            TerminateProcess();
+        }
+
+        protected virtual void OnProcessExited()
+        {
+            ProcessExited?.Invoke(this, EventArgs.Empty);
         }
     }
 }
