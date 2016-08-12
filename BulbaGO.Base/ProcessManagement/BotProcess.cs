@@ -12,13 +12,7 @@ namespace BulbaGO.Base.ProcessManagement
     {
         public BotProcess(Bot bot) : base(bot)
         {
-            ProcessStateChanged += BotProcess_ProcessStateChanged;
-            OutputDataReceived += BotProcess_OutputDataReceived;
-            ErrorDataReceived += BotProcess_ErrorDataReceived;
-            Exited += BotProcess_Exited;
         }
-
-        public event EventHandler BotProcessExited;
 
         public async Task<bool> Start()
         {
@@ -45,7 +39,6 @@ namespace BulbaGO.Base.ProcessManagement
             if (await Initialize())
             {
                 State = ProcessState.Running;
-                Logger.Info($"Successfully launched bot process with pid {Process.Id}.");
                 return true;
             }
             State = ProcessState.InitializationFailed;
@@ -57,28 +50,15 @@ namespace BulbaGO.Base.ProcessManagement
             return await base.Initialize();
         }
 
-        private void BotProcess_Exited(object sender, EventArgs e)
+        protected override void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            BotProcessExited?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void BotProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
+            base.Process_OutputDataReceived(sender, e);
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                Logger.Error(e.Data);
-            }
-        }
-
-        private void BotProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (!string.IsNullOrWhiteSpace(e.Data))
-            {
-                Logger.Debug($"{e.Data}");
-
                 if (e.Data.Contains("(ATTENTION) No usable PokeStops found in your area. Is your maximum distance too small?"))
                 {
                     Logger.Error("Bot reported no pokestops around, possible ip ban, restarting bot.");
+                    State = ProcessState.Error;
                     //TerminateProcess();
                     //_bot.Restart();
                     return;
@@ -88,6 +68,7 @@ namespace BulbaGO.Base.ProcessManagement
                     Logger.Error("Bot reported invalid proxy, restarting bot.");
                     //TerminateProcess();
                     //_bot.Restart();
+                    State = ProcessState.Error;
                     return;
                 }
                 if (e.Data.Contains("ERROR"))
@@ -95,14 +76,10 @@ namespace BulbaGO.Base.ProcessManagement
                     Logger.Error("Bot reported an error, restarting bot.");
                     //TerminateProcess();
                     //_bot.Restart();
+                    State = ProcessState.Error;
                     return;
                 }
             }
-        }
-
-        private void BotProcess_ProcessStateChanged(ProcessState state)
-        {
-            //throw new NotImplementedException();
         }
     }
 

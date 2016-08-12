@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="Bots\Bot.cs" />
     <Compile Include="ProcessManagement\AsyncProcess.cs" />
+    <Compile Include="ProcessManagement\SocksWebProxyProcess.cs" />
     <Compile Include="ProcessManagement\BotProcess.cs" />
     <Compile Include="ProcessManagement\BotProcessContainer.cs" />
     <Compile Include="Bots\IBotConfigCreator.cs" />

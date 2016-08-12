@@ -51,10 +51,10 @@ namespace BulbaGO.Base.Bots
         public BotType BotType { get; set; }
 
         [BsonIgnore]
-        public SocksWebProxyContainer ProxyContainer { get; set; }
+        public SocksWebProxyProcess ProxyProcess { get; set; }
 
         [BsonIgnore]
-        public BotProcessContainer BotProcessContainer { get; set; }
+        public BotProcess BotProcess { get; set; }
 
         public static async Task<Bot> GetInstance(AuthType authType, string username, string password,
             string twoLetterIsoCountryCode)
@@ -96,12 +96,11 @@ namespace BulbaGO.Base.Bots
             MongoHelper.GetCollection<Bot>().ReplaceOne(FilterBuilder.Eq(b => b.Username, Username), this, new UpdateOptions { IsUpsert = true });
         }
 
-        private async Task SetContainers()
+        private async Task<bool> SetContainers()
         {
-            ProxyContainer = SocksWebProxyContainer.GetNeWebProxyContainer(Username, TwoLetterIsoCountryCode);
-            ProxyContainer.ProcessExited += ProxyContainer_ProcessExited;
-            await ProxyContainer.Start();
-            if (ProxyContainer.Connected)
+            ProxyProcess = SocksWebProxyProcess.GetInstance(this,TwoLetterIsoCountryCode);
+            ProxyProcess.ProcessExited += ProxyProcess_ProcessExited;
+            if (await ProxyProcess.Start())
             {
                 switch (BotType)
                 {
@@ -109,52 +108,57 @@ namespace BulbaGO.Base.Bots
                         NecroBot.CreateBotConfig(this);
                         break;
                 }
-                BotProcessContainer = new BotProcessContainer(this);
-                BotProcessContainer.ProcessExited += BotProcessContainer_ProcessExited;
+                BotProcess = new BotProcess(this);
+                BotProcess.ProcessExited += BotProcessContainer_ProcessExited;
+                return true;
             }
+            return false;
         }
 
-        private void BotProcessContainer_ProcessExited(object sender, EventArgs e)
+        private  async void ProxyProcess_ProcessExited(AsyncProcess process)
         {
-            ResetContainers().Wait();
-            Start(BotType).Wait();
-        }
-
-        private async Task ResetContainers()
-        {
-            if (BotProcessContainer != null)
+            if (await ResetProcesses())
             {
-                BotProcessContainer.TerminateProcess();
-                BotProcessContainer = null;
+                await BotProcess.Start();
             }
-            if (ProxyContainer != null)
-            {
-                ProxyContainer.TerminateProcess();
-                ProxyContainer = null;
-            }
-            await SetContainers();
         }
 
-        private void ProxyContainer_ProcessExited(object sender, EventArgs e)
+        private async void BotProcessContainer_ProcessExited(AsyncProcess process)
         {
-            ResetContainers().Wait();
-            Start(BotType).Wait();
+            if (await ResetProcesses())
+            {
+                await BotProcess.Start();
+            }
         }
+
+        private async Task<bool> ResetProcesses()
+        {
+            if (BotProcess != null)
+            {
+                await BotProcess.Stop();
+                BotProcess = null;
+            }
+            if (ProxyProcess != null)
+            {
+                await ProxyProcess.Stop();
+                ProxyProcess = null;
+            }
+            return await SetContainers();
+        }
+
 
         public async Task Start(BotType botType)
         {
             BotType = botType;
-            await SetContainers();
-
-            if (ProxyContainer != null && ProxyContainer.Connected && BotProcessContainer != null)
+            if (await SetContainers())
             {
-                await BotProcessContainer.Start();
+                await BotProcess.Start();
             }
         }
 
         public async void Restart()
         {
-            await ResetContainers();
+            await ResetProcesses();
             await Start(BotType);
         }
 

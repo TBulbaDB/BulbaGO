@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 using log4net;
 using log4net.Appender;
 using log4net.Core;
@@ -9,6 +11,7 @@ namespace BulbaGO.Base.Logging
 {
     public static class Log4NetHelper
     {
+
         public static void AddAppender(IAppender appender)
         {
             var repository = (Hierarchy)LogManager.GetRepository();
@@ -34,6 +37,32 @@ namespace BulbaGO.Base.Logging
             appender.ActivateOptions();
 
             return appender;
+        }
+
+        public static IAppender FileAppender(Level threshhold)
+        {
+            var appender=new FileAppender();
+            appender.Name = "FileAppender";
+            appender.AppendToFile = true;
+            appender.Encoding=Encoding.UTF8;
+            appender.ImmediateFlush = true;
+            appender.File = GenerateLogFileName();
+            appender.Threshold = threshhold;
+            var layout = new PatternLayout();
+            layout.ConversionPattern = "%date %logger [%thread] %-5level - %message%newline";
+            layout.ActivateOptions();
+            appender.Layout = layout;
+            appender.ActivateOptions();
+            return appender;
+        }
+
+
+        private static string GenerateLogFileName()
+        {
+            var fileName = $"{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.log";
+            var logFolder = Path.Combine(Environment.CurrentDirectory, "Logs");
+            Directory.CreateDirectory(logFolder);
+            return Path.Combine(logFolder, fileName);
         }
     }
 }

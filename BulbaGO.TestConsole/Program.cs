@@ -25,31 +25,23 @@ namespace BulbaGO.TestConsole
                 return;
             }
             Log4NetHelper.AddAppender(Log4NetHelper.ConsoleAppender(Level.All));
+            Log4NetHelper.AddAppender(Log4NetHelper.FileAppender(Level.All));
             ApplicationContext.Initialize();
 
-            var bots = new List<Bot>();
-            //Task.Run(async () =>
-            //{
-            //    bots.Add(await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB001", "qq12534", "US"));
-            //    bots.Add(await Bot.CreateNewBot(BotType.NecroBot, AuthType.Ptc, "TBulbaDB002", "qq12534", "US"));
-            //}).Wait();
-
-
-            var taskList = new[]
+            Task.Run(async () =>
             {
-                Bot.GetInstance(AuthType.Ptc, "TBulbaDB001", "qq12534", "US"),
-                Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US")
-            };
-            Task.WaitAll(taskList);
-
-            bots = taskList.Select(t => t.Result).ToList();
-            var botTasks = bots.Select(b => b.Start(BotType.NecroBot)).ToArray();
-            Task.WaitAll(botTasks);
-
+                await MainAsync();
+            }).Wait();
 
             Console.WriteLine("Finished, press any key to exit");
             Console.ReadKey();
             //}).Wait();
+        }
+
+        private static async Task MainAsync()
+        {
+            var bot = await Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US");
+            await bot.Start(BotType.NecroBot);
         }
     }
 }

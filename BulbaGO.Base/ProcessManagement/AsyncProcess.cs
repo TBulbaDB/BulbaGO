@@ -10,7 +10,8 @@ using log4net.Core;
 
 namespace BulbaGO.Base.ProcessManagement
 {
-    public delegate void ProcessStateChangedEventHandler(ProcessState state);
+    public delegate void ProcessStateChangedEventHandler(ProcessState previousState, ProcessState state);
+    public delegate void ProcessExited(AsyncProcess process);
 
     public abstract class AsyncProcess : IDisposable
     {
@@ -20,7 +21,9 @@ namespace BulbaGO.Base.ProcessManagement
             Bot = bot;
             Logger = LogManager.GetLogger(bot.Username);
         }
+
         protected ILog Logger { get; set; }
+        public event ProcessExited ProcessExited;
 
         public ProcessState State
         {
@@ -31,7 +34,7 @@ namespace BulbaGO.Base.ProcessManagement
                 _state = value;
                 if (_state != previousState)
                 {
-                    OnProcessStateChanged(_state);
+                    OnProcessStateChanged(previousState , _state);
                 }
             }
         }
@@ -80,41 +83,65 @@ namespace BulbaGO.Base.ProcessManagement
 
         public virtual async Task<bool> Stop()
         {
-            State=ProcessState.Terminating;
+            State = ProcessState.Terminating;
             Process?.Dispose();
             return true;
         }
 
-        public event ProcessStateChangedEventHandler ProcessStateChanged;
-        public event DataReceivedEventHandler OutputDataReceived;
-        public event DataReceivedEventHandler ErrorDataReceived;
-        public event EventHandler Exited;
-
-        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        protected virtual void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
-            OutputDataReceived?.Invoke(sender, e);
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                Logger.Debug(e.Data);
+            }
         }
 
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        protected virtual void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             State = ProcessState.Error;
-            ErrorDataReceived?.Invoke(sender, e);
         }
 
-        private void Process_Exited(object sender, EventArgs e)
+        protected virtual void Process_Exited(object sender, EventArgs e)
         {
             if (State != ProcessState.Terminating)
             {
                 Logger.Error("Process has unexpectedly terminated.");
             }
             State = ProcessState.Terminated;
-            Exited?.Invoke(sender, e);
+            ProcessExited?.Invoke(this);
         }
 
-        private void OnProcessStateChanged(ProcessState state)
+        protected virtual void OnProcessStateChanged(ProcessState previousState, ProcessState state)
         {
-            Logger.Info($"{this.GetType().Name} {state}");
-            ProcessStateChanged?.Invoke(state);
+            Logger.Debug($"{GetType().Name} State changed from {previousState } to {state}");
+            switch (state)
+            {
+                case ProcessState.NotCreated:
+                    break;
+                case ProcessState.Created:
+                    break;
+                case ProcessState.Starting:
+                    break;
+                case ProcessState.Started:
+                    break;
+                case ProcessState.StartFailed:
+                    break;
+                case ProcessState.Initializing:
+                    break;
+                case ProcessState.InitializationFailed:
+                    break;
+                case ProcessState.Running:
+                    Logger.Info($"Successfully launched {GetType().Name} with pid {Process.Id}.");
+                    break;
+                case ProcessState.Terminating:
+                    break;
+                case ProcessState.Terminated:
+                    break;
+                case ProcessState.Error:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(state), state, null);
+            }
         }
 
         public void Dispose()

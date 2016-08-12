@@ -97,7 +97,7 @@ namespace BulbaGO.Base.Bots
                         break;
 
                     case "UseProxyPort":
-                        p.Value = bot.ProxyContainer.HttpPort;
+                        p.Value = bot.ProxyProcess.HttpPort;
                         break;
                 }
             }
