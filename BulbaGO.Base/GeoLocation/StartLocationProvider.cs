@@ -2,34 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using BulbaGO.Base.GeoLocation.Google;
 
 namespace BulbaGO.Base.GeoLocation
 {
-    public class StartLocation
-    {
-        public string TwoLetterIsoCountryCode { get; set; }
-        public string Name { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public int MaxWalkDistance { get; set; }
-
-        public StartLocation() { }
-
-        public StartLocation(string twoLetterIsoCountryCode, string name, double latitude, double longitude, int maxWalkDistance)
-        {
-            TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
-            Name = name;
-            Latitude = latitude;
-            Longitude = longitude;
-            MaxWalkDistance = maxWalkDistance;
-
-        }
-    }
-
     public static class StartLocationProvider
     {
         public static List<StartLocation> StartLocations = new List<StartLocation>();
+        private static readonly Random LocationRandomizer = new Random();
 
         static StartLocationProvider()
         {
@@ -40,9 +22,15 @@ namespace BulbaGO.Base.GeoLocation
             StartLocations.Add(new StartLocation("US", "San Diego", 32.721531, -117.1595627, 2000));
         }
 
-        public static StartLocation GetRandomStartLocation(string twoLetterIsoCountryCode)
+        public static async Task<StartLocation> GetRandomStartLocation(string twoLetterIsoCountryCode, CancellationToken ct)
         {
-            return StartLocations.OrderBy(l => new Random().Next()).FirstOrDefault();
+            ct.ThrowIfCancellationRequested();
+            var startLocation = StartLocations.OrderBy(l => LocationRandomizer.Next()).FirstOrDefault();
+            if (startLocation != null)
+            {
+                startLocation.Altitude = await Elevation.GetElevation(startLocation.Latitude, startLocation.Longitude, ct);
+            }
+            return startLocation;
         }
     }
 }

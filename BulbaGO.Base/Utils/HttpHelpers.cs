@@ -11,6 +11,26 @@ namespace BulbaGO.Base.Utils
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(HttpHelpers));
 
+        public static async Task<string> GettringAsync(this SuperHttpClient client, Uri uri)
+        {
+            try
+            {
+                var response = await client.GetAsync(uri);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
+            }
+            catch (HttpRequestException hre)
+            {
+                Logger.Error($"[{hre.GetType().Name}] {hre.Message}");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[{ex.GetType().Name}] {ex.Message}");
+            }
+
+            return null;
+        }
+
         public static async Task<string> WhatIsMyIp(IWebProxy proxy = null)
         {
             try

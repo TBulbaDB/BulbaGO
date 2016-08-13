@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BulbaGO.Base.Bots;
 using BulbaGO.Base.GeoLocation;
@@ -95,8 +96,9 @@ namespace BulbaGO.Base.ProcessManagement
         private StringBuilder _consoleOutput;
         private Stopwatch _timeoutChecker;
 
-        public async Task<bool> Start()
+        public async Task<bool> Start(CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             var torArguments = string.Format(TorCommandLineTemplate, SocksPort);
 
             if (TorCountries != null && TorCountries.Count > 0)
@@ -116,7 +118,7 @@ namespace BulbaGO.Base.ProcessManagement
                 WindowStyle = ProcessWindowStyle.Hidden
             };
 
-            await Start(startInfo);
+            await Start(startInfo, ct);
             if (State != ProcessState.Started)
             {
                 State = ProcessState.StartFailed;
@@ -126,7 +128,7 @@ namespace BulbaGO.Base.ProcessManagement
             _consoleOutput = new StringBuilder();
 
             State = ProcessState.Initializing;
-            if (await Initialize())
+            if (await Initialize(ct))
             {
                 State = ProcessState.Running;
                 return true;
@@ -135,13 +137,16 @@ namespace BulbaGO.Base.ProcessManagement
             return false;
         }
 
-        protected override async Task<bool> Initialize()
+        const int maxRetriesCount = 3;
+        private int currentRetryNumber = 0;
+        protected override async Task<bool> Initialize(CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             _timeoutChecker = new Stopwatch();
             _timeoutChecker.Start();
             while (!Connected)
             {
-                await Task.Delay(100);
+                await Task.Delay(100, ct);
                 CheckIfConnected();
                 if (!Connected && _timeoutChecker.ElapsedMilliseconds > Timeout)
                 {
@@ -151,7 +156,7 @@ namespace BulbaGO.Base.ProcessManagement
                 }
             }
             UpdateProxy();
-            if (await UpdateExitAddress())
+            if (await UpdateExitAddress(ct))
             {
                 return true;
             }
@@ -169,9 +174,11 @@ namespace BulbaGO.Base.ProcessManagement
             Proxy = new SocksWebProxy(proxyConfig);
         }
 
-        private async Task<bool> UpdateExitAddress()
+        private async Task<bool> UpdateExitAddress(CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             ExitAddress = await HttpHelpers.WhatIsMyIp(Proxy);
+            Logger.Info($"Proxy is connected with IP address {ExitAddress}");
             if (string.IsNullOrWhiteSpace(ExitAddress))
             {
                 Logger.Warn($"Proxy on port {SocksPort} has empty exit address, retrying.");

@@ -1,35 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using BulbaGO.Base.ProcessManagement;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace BulbaGO.Base.Bots
 {
-    public class NecroBot : IBotConfigCreator
+    public class NecroBotConfig : IBotConfig
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(NecroBot));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(NecroBotConfig).Name);
 
-        public static readonly string BotFolder;
-        private static readonly string BotConfigFolder;
-        public static readonly string BotExecutablePath;
+        private static readonly string _botFolder;
+        private static readonly string _botConfigFolder;
+        private static readonly string _botExecutablePath;
 
-        static NecroBot()
+        static NecroBotConfig()
         {
-            BotFolder = Path.Combine(Environment.CurrentDirectory, "Bots", "NecroBot");
-            BotConfigFolder = Path.Combine(BotFolder, "Config");
-            BotExecutablePath = Path.Combine(BotFolder, "NecroBot.exe");
+            _botFolder = Path.Combine(Environment.CurrentDirectory, "Bots", "NecroBot");
+            _botConfigFolder = Path.Combine(_botFolder, "Config");
+            _botExecutablePath = Path.Combine(_botFolder, "NecroBot.exe");
         }
 
-        public static void CreateBotConfig(Bot bot)
+        public void CreateBotConfig(Bot bot)
         {
-            var defaultConfigFilePath = Path.Combine(BotConfigFolder, "config.json");
-            var defaultAuthFilePath = Path.Combine(BotConfigFolder, "auth.json");
+            var defaultConfigFilePath = Path.Combine(_botConfigFolder, "config.json");
+            var defaultAuthFilePath = Path.Combine(_botConfigFolder, "auth.json");
 
             var defaultConfig = JsonConvert.DeserializeObject(File.ReadAllText(defaultConfigFilePath)) as JObject;
             var defaultAuth = JsonConvert.DeserializeObject(File.ReadAllText(defaultAuthFilePath)) as JObject;
@@ -73,7 +70,7 @@ namespace BulbaGO.Base.Bots
                         break;
 
                     case "GoogleUsername":
-                        p.Value = bot.AuthType==AuthType.Google?bot.Username:null;
+                        p.Value = bot.AuthType == AuthType.Google ? bot.Username : null;
                         break;
 
                     case "GooglePassword":
@@ -102,11 +99,43 @@ namespace BulbaGO.Base.Bots
                 }
             }
 
-            var accountConfigPath = Path.Combine(BotFolder, bot.Username, "Config");
+            var accountConfigPath = Path.Combine(_botFolder, bot.Username, "Config");
             Directory.CreateDirectory(accountConfigPath);
             File.WriteAllText(Path.Combine(accountConfigPath, "config.json"), defaultConfig.ToString());
             File.WriteAllText(Path.Combine(accountConfigPath, "auth.json"), defaultAuth.ToString());
         }
 
+        public void ProcessOutputData(BotProcess botProcess, string data)
+        {
+            if (data.Contains("(ATTENTION) No usable PokeStops found in your area. Is your maximum distance too small?"))
+            {
+                botProcess.Logger.Error("Bot reported no pokestops around, possible ip ban, restarting bot.");
+                botProcess.State = ProcessState.Error;
+                //TerminateProcess();
+                //_bot.Restart();
+                return;
+            }
+            if (data.Contains("INVALID PROXY"))
+            {
+                botProcess.Logger.Error("Bot reported invalid proxy, restarting bot.");
+                //TerminateProcess();
+                //_bot.Restart();
+                botProcess.State = ProcessState.Error;
+                return;
+            }
+            if (data.Contains("ERROR"))
+            {
+                botProcess.Logger.Error("Bot reported an error, restarting bot.");
+                //TerminateProcess();
+                //_bot.Restart();
+                botProcess.State = ProcessState.Error;
+                return;
+            }
+        }
+
+        public string BotName { get; } = "NecroBot";
+        public string BotFolder { get; } = _botFolder;
+        public string BotConfigFolder { get; } = _botConfigFolder;
+        public string BotExecutablePath { get; } = _botExecutablePath;
     }
 }

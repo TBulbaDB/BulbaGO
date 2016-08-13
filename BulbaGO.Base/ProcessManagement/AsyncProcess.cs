@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BulbaGO.Base.Bots;
 using log4net;
@@ -22,7 +23,7 @@ namespace BulbaGO.Base.ProcessManagement
             Logger = LogManager.GetLogger(bot.Username);
         }
 
-        protected ILog Logger { get; set; }
+        public ILog Logger { get; set; }
         public event ProcessExited ProcessExited;
 
         public ProcessState State
@@ -34,7 +35,7 @@ namespace BulbaGO.Base.ProcessManagement
                 _state = value;
                 if (_state != previousState)
                 {
-                    OnProcessStateChanged(previousState , _state);
+                    OnProcessStateChanged(previousState, _state);
                 }
             }
         }
@@ -42,8 +43,9 @@ namespace BulbaGO.Base.ProcessManagement
         public Process Process { get; private set; }
         private ProcessState _state;
 
-        protected virtual Task<bool> Start(ProcessStartInfo processStartInfo)
+        protected virtual Task<bool> Start(ProcessStartInfo processStartInfo, CancellationToken ct)
         {
+            Logger.Info($"Starting {this.GetType().Name}...");
             var tcs = new TaskCompletionSource<bool>();
             State = ProcessState.Starting;
             if (processStartInfo == null)
@@ -58,12 +60,14 @@ namespace BulbaGO.Base.ProcessManagement
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
             };
+            
             Process.Exited += Process_Exited;
             Process.ErrorDataReceived += Process_ErrorDataReceived;
             Process.OutputDataReceived += Process_OutputDataReceived;
 
             if (Process.Start())
             {
+                Logger.Info($"Started {this.GetType().Name}...");
                 ChildProcessTracker.AddProcess(Process);
                 Process.BeginOutputReadLine();
                 Process.BeginErrorReadLine();
@@ -76,15 +80,19 @@ namespace BulbaGO.Base.ProcessManagement
 
 
 
-        protected virtual async Task<bool> Initialize()
+        protected virtual async Task<bool> Initialize(CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             return true;
         }
 
         public virtual async Task<bool> Stop()
         {
-            State = ProcessState.Terminating;
-            Process?.Dispose();
+            //ct.ThrowIfCancellationRequested();
+            if (State != ProcessState.Terminating || State != ProcessState.Terminated)
+            {
+                State = ProcessState.Terminating;
+            }
             return true;
         }
 
@@ -98,22 +106,26 @@ namespace BulbaGO.Base.ProcessManagement
 
         protected virtual void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            State = ProcessState.Error;
+            if (State != ProcessState.Terminating && State != ProcessState.Terminated)
+            {
+                State = ProcessState.Error;
+            }
+
         }
 
         protected virtual void Process_Exited(object sender, EventArgs e)
         {
             if (State != ProcessState.Terminating)
             {
-                Logger.Error("Process has unexpectedly terminated.");
+                Logger.Error($"{GetType().Name} has unexpectedly terminated.");
             }
-            State = ProcessState.Terminated;
+            //State = ProcessState.Terminated;
             ProcessExited?.Invoke(this);
         }
 
         protected virtual void OnProcessStateChanged(ProcessState previousState, ProcessState state)
         {
-            Logger.Debug($"{GetType().Name} State changed from {previousState } to {state}");
+            Logger.Debug($"{GetType().Name} State changed from {previousState} to {state}");
             switch (state)
             {
                 case ProcessState.NotCreated:
@@ -124,16 +136,18 @@ namespace BulbaGO.Base.ProcessManagement
                     break;
                 case ProcessState.Started:
                     break;
-                case ProcessState.StartFailed:
-                    break;
                 case ProcessState.Initializing:
-                    break;
-                case ProcessState.InitializationFailed:
                     break;
                 case ProcessState.Running:
                     Logger.Info($"Successfully launched {GetType().Name} with pid {Process.Id}.");
                     break;
+                case ProcessState.StartFailed:
+                case ProcessState.InitializationFailed:
                 case ProcessState.Terminating:
+                    if (Process == null || Process.HasExited) break;
+                    Logger.Warn($"Termination of {GetType().Name} with pid {Process?.Id} is requested.");
+                    Process?.Kill();
+                    Logger.Warn($"{GetType().Name} with pid {Process?.Id} is terminated.");
                     break;
                 case ProcessState.Terminated:
                     break;

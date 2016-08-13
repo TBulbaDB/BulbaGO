@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BulbaGO.Base.Bots;
 using BulbaGO.Base.Context;
 using BulbaGO.Base.GeoLocation;
+using BulbaGO.Base.GeoLocation.Google;
 using BulbaGO.Base.Logging;
 using log4net.Core;
 
@@ -40,8 +41,13 @@ namespace BulbaGO.TestConsole
 
         private static async Task MainAsync()
         {
-            var bot = await Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US");
-            await bot.Start(BotType.NecroBot);
+            var bots=new List<Bot>();
+            bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB001", "qq12534", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US"));
+            //bot = await Bot.GetInstance(AuthType.Ptc, "TBulbaDB003", "qq12534", "US");
+            //bot = await Bot.GetInstance(AuthType.Ptc, "TBulbaDB004", "qq12534", "US");
+            //bot = await Bot.GetInstance(AuthType.Ptc, "TBulbaDB005", "qq12534", "US");
+            Task.WaitAll(bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
         }
     }
 }

@@ -2,33 +2,48 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BulbaGO.Base.Bots;
 
 namespace BulbaGO.Base.ProcessManagement
 {
+    public delegate void BotProgressChangedEventHandler(BotProgress progress);
+
     public class BotProcess : AsyncProcess
     {
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        public string WindowTitle { get; private set; }
+        public event BotProgressChangedEventHandler BotProgressChanged;
+
+        private IntPtr _botProcessParent;
+
         public BotProcess(Bot bot) : base(bot)
         {
         }
 
-        public async Task<bool> Start()
+        public async Task<bool> Start(CancellationToken ct, IntPtr botProcessParent)
         {
+            _botProcessParent = botProcessParent;
+            ct.ThrowIfCancellationRequested();
             var startInfo = new ProcessStartInfo
             {
-                FileName = NecroBot.BotExecutablePath,
+                FileName = Bot.BotConfig.BotExecutablePath,
                 Arguments = Bot.Username,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = false,
                 UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Normal,
-                WorkingDirectory = NecroBot.BotFolder
+                WindowStyle = ProcessWindowStyle.Minimized,
+                WorkingDirectory = Bot.BotConfig.BotFolder
             };
 
-            await Start(startInfo);
+            await Start(startInfo, ct);
             if (State != ProcessState.Started)
             {
                 State = ProcessState.StartFailed;
@@ -36,7 +51,7 @@ namespace BulbaGO.Base.ProcessManagement
             }
 
             State = ProcessState.Initializing;
-            if (await Initialize())
+            if (await Initialize(ct))
             {
                 State = ProcessState.Running;
                 return true;
@@ -45,41 +60,99 @@ namespace BulbaGO.Base.ProcessManagement
             return false;
         }
 
-        protected override async Task<bool> Initialize()
+        protected override async Task<bool> Initialize(CancellationToken ct)
         {
-            return await base.Initialize();
+            ct.ThrowIfCancellationRequested();
+            return await base.Initialize(ct);
         }
 
+        private bool _attached;
         protected override void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             base.Process_OutputDataReceived(sender, e);
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                if (e.Data.Contains("(ATTENTION) No usable PokeStops found in your area. Is your maximum distance too small?"))
+                Bot.BotConfig.ProcessOutputData(this, e.Data);
+                if (!_attached)
                 {
-                    Logger.Error("Bot reported no pokestops around, possible ip ban, restarting bot.");
-                    State = ProcessState.Error;
-                    //TerminateProcess();
-                    //_bot.Restart();
-                    return;
-                }
-                if (e.Data.Contains("INVALID PROXY"))
-                {
-                    Logger.Error("Bot reported invalid proxy, restarting bot.");
-                    //TerminateProcess();
-                    //_bot.Restart();
-                    State = ProcessState.Error;
-                    return;
-                }
-                if (e.Data.Contains("ERROR"))
-                {
-                    Logger.Error("Bot reported an error, restarting bot.");
-                    //TerminateProcess();
-                    //_bot.Restart();
-                    State = ProcessState.Error;
-                    return;
+                    if (_botProcessParent != default(IntPtr))
+                    {
+                        SetParent(Process.MainWindowHandle, _botProcessParent);
+                    }
+                    _attached = true;
                 }
             }
+            //var whi = new WindowHandleInfo(Process.MainWindowHandle);
+            //var allWindows = whi.GetAllChildHandles();
+            //if (allWindows.Count == 0) return;Process.MainWindowHandle
+
+            //var firstWindow = whi.GetAllChildHandles()[0];
+            var textLength = GetWindowTextLength(Process.MainWindowHandle);
+            var wndStr = new StringBuilder(textLength);
+            var l = GetWindowText(Process.MainWindowHandle, wndStr, wndStr.Capacity);
+            var windowText = wndStr.ToString();
+            if (WindowTitle != windowText)
+            {
+                WindowTitle = windowText;
+                BotProgressChanged?.Invoke(new BotProgress { BotTitle = WindowTitle });
+            }
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowTextLength", SetLastError = true)]
+        internal static extern int GetWindowTextLength(IntPtr hwnd);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+    }
+
+    public class WindowHandleInfo
+    {
+        private delegate bool EnumWindowProc(IntPtr hwnd, IntPtr lParam);
+
+        [DllImport("user32")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool EnumChildWindows(IntPtr window, EnumWindowProc callback, IntPtr lParam);
+
+        private IntPtr _MainHandle;
+
+        public WindowHandleInfo(IntPtr handle)
+        {
+            this._MainHandle = handle;
+        }
+
+        public List<IntPtr> GetAllChildHandles()
+        {
+            List<IntPtr> childHandles = new List<IntPtr>();
+
+            GCHandle gcChildhandlesList = GCHandle.Alloc(childHandles);
+            IntPtr pointerChildHandlesList = GCHandle.ToIntPtr(gcChildhandlesList);
+
+            try
+            {
+                EnumWindowProc childProc = new EnumWindowProc(EnumWindow);
+                EnumChildWindows(this._MainHandle, childProc, pointerChildHandlesList);
+            }
+            finally
+            {
+                gcChildhandlesList.Free();
+            }
+
+            return childHandles;
+        }
+
+        private bool EnumWindow(IntPtr hWnd, IntPtr lParam)
+        {
+            GCHandle gcChildhandlesList = GCHandle.FromIntPtr(lParam);
+
+            if (gcChildhandlesList == null || gcChildhandlesList.Target == null)
+            {
+                return false;
+            }
+
+            List<IntPtr> childHandles = gcChildhandlesList.Target as List<IntPtr>;
+            childHandles.Add(hWnd);
+
+            return true;
         }
     }
 

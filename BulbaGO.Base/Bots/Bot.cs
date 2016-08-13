@@ -2,19 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using BulbaGO.Base.Devices;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.MongoDB;
 using BulbaGO.Base.ProcessManagement;
+using log4net;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace BulbaGO.Base.Bots
 {
+    public class BotProgress
+    {
+        public string BotTitle { get; set; }
+    }
+
     public enum BotType
     {
-        NecroBot
+        NecroBot,
+        PokeMobBot
     }
 
     public enum AuthType
@@ -46,9 +55,12 @@ namespace BulbaGO.Base.Bots
         public string Password { get; set; }
         public string TwoLetterIsoCountryCode { get; set; }
         public StartLocation Location { get; set; }
+        public DeviceSettings DeviceSettings { get; set; }
 
-        [BsonIgnore]
         public BotType BotType { get; set; }
+
+        public IBotConfig BotConfig { get; set; }
+
 
         [BsonIgnore]
         public SocksWebProxyProcess ProxyProcess { get; set; }
@@ -56,28 +68,60 @@ namespace BulbaGO.Base.Bots
         [BsonIgnore]
         public BotProcess BotProcess { get; set; }
 
+        [BsonIgnore]
+        public string BotProcessTitle => BotProcess?.WindowTitle;
+
+        [BsonIgnore]
+        public ILog Logger { get; private set; }
+
+        [BsonIgnore]
+        public IProgress<BotProgress> Progress { get; private set; }
+
+        private CancellationTokenSource _cts;
+        private CancellationToken _ct;
+
         public static async Task<Bot> GetInstance(AuthType authType, string username, string password,
             string twoLetterIsoCountryCode)
         {
-
-            var bot = await GetBotFromMongoDb(username);
-            if (bot != null && bot.Location == null)
+            var cts = new CancellationTokenSource();
+            var ct = cts.Token;
+            ct.ThrowIfCancellationRequested();
+            try
             {
-                bot.Location = StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode);
-                bot.Save();
-            }
-            if (bot == null)
-            {
-                bot = new Bot();
-                bot.AuthType = authType;
-                bot.Username = username;
-                bot.Password = password;
-                bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
-                bot.Location = StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode);
-                bot.Save();
-            }
+                var bot = await GetBotFromMongoDb(username, ct);
 
-            return bot;
+                if (bot != null && bot.Location == null)
+                {
+                    bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
+                    bot.Save();
+                }
+                if (bot != null && bot.DeviceSettings == null)
+                {
+                    bot.DeviceSettings = new DeviceSettings();
+                    bot.Save();
+                }
+                if (bot == null)
+                {
+                    bot = new Bot();
+                    bot.AuthType = authType;
+                    bot.Username = username;
+                    bot.Password = password;
+                    bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
+                    bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
+                    bot.DeviceSettings = new DeviceSettings();
+                    bot.Save();
+                }
+                bot._cts = cts;
+                bot._ct = ct;
+                bot.Logger = LogManager.GetLogger(bot.Username);
+                return bot;
+            }
+            catch (OperationCanceledException osc)
+            {
+
+            }
+            return null;
+
         }
 
         private static readonly FilterDefinitionBuilder<Bot> FilterBuilder =
@@ -85,10 +129,11 @@ namespace BulbaGO.Base.Bots
 
         //private static readonly UpdateDefinitionBuilder<Bot> UpdateBuilder = Builders<Bot>.Update;
 
-        private static async Task<Bot> GetBotFromMongoDb(string username)
+        private static async Task<Bot> GetBotFromMongoDb(string username, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
             var filter = FilterBuilder.Eq(b => b.Username, username);
-            return await MongoHelper.GetCollection<Bot>().Find(filter).FirstOrDefaultAsync();
+            return await MongoHelper.GetCollection<Bot>().Find(filter).FirstOrDefaultAsync(ct);
         }
 
         public void Save()
@@ -96,42 +141,43 @@ namespace BulbaGO.Base.Bots
             MongoHelper.GetCollection<Bot>().ReplaceOne(FilterBuilder.Eq(b => b.Username, Username), this, new UpdateOptions { IsUpsert = true });
         }
 
-        private async Task<bool> SetContainers()
+        private async Task<bool> SetProcesses(CancellationToken ct)
         {
-            ProxyProcess = SocksWebProxyProcess.GetInstance(this,TwoLetterIsoCountryCode);
+            ct.ThrowIfCancellationRequested();
+            ProxyProcess = SocksWebProxyProcess.GetInstance(this, TwoLetterIsoCountryCode);
             ProxyProcess.ProcessExited += ProxyProcess_ProcessExited;
-            if (await ProxyProcess.Start())
+            if (await ProxyProcess.Start(ct))
             {
-                switch (BotType)
-                {
-                    case BotType.NecroBot:
-                        NecroBot.CreateBotConfig(this);
-                        break;
-                }
                 BotProcess = new BotProcess(this);
                 BotProcess.ProcessExited += BotProcessContainer_ProcessExited;
+                BotProcess.BotProgressChanged += BotProcess_BotProgressChanged;
                 return true;
             }
             return false;
         }
 
-        private  async void ProxyProcess_ProcessExited(AsyncProcess process)
+        private void BotProcess_BotProgressChanged(BotProgress progress)
         {
-            if (await ResetProcesses())
-            {
-                await BotProcess.Start();
-            }
+            Progress?.Report(progress);
+        }
+
+        private async void ProxyProcess_ProcessExited(AsyncProcess process)
+        {
+            await StopProcesses();
+            //Logger.Warn("Restarting everything in 10 seconds.");
+            //await Task.Delay(10000);
+            //await Start(BotType);
         }
 
         private async void BotProcessContainer_ProcessExited(AsyncProcess process)
         {
-            if (await ResetProcesses())
-            {
-                await BotProcess.Start();
-            }
+            await StopProcesses();
+            //Logger.Warn("Restarting everything in 10 seconds.");
+            //await Task.Delay(10000);
+            //await Start(BotType);
         }
 
-        private async Task<bool> ResetProcesses()
+        private async Task<bool> StopProcesses()
         {
             if (BotProcess != null)
             {
@@ -143,24 +189,42 @@ namespace BulbaGO.Base.Bots
                 await ProxyProcess.Stop();
                 ProxyProcess = null;
             }
-            return await SetContainers();
+            return true;
         }
 
 
-        public async Task Start(BotType botType)
+        public async Task Start(BotType botType, IProgress<BotProgress> progress = null, IntPtr botProcessParent = default(IntPtr))
         {
+            Progress = progress;
+            _ct.ThrowIfCancellationRequested();
             BotType = botType;
-            if (await SetContainers())
+            try
             {
-                await BotProcess.Start();
+                if (await SetProcesses(_ct))
+                {
+                    BotConfig = BotConfigFactory.GetInstance(this);
+                    await BotProcess.Start(_ct, botProcessParent);
+                }
             }
+            catch (OperationCanceledException oce)
+            {
+
+            }
+        }
+
+        public async Task Stop()
+        {
+            _cts.Cancel();
+            await StopProcesses();
+            _cts = new CancellationTokenSource();
+            _ct = _cts.Token;
+
         }
 
         public async void Restart()
         {
-            await ResetProcesses();
+            await StopProcesses();
             await Start(BotType);
         }
-
     }
 }
