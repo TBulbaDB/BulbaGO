@@ -22,8 +22,12 @@ namespace BulbaGO.Base.ProcessManagement
         private static readonly string TorCommandLineTemplate;
         private static readonly string TorCommandLineCountriesTemplate;
 
+        private static readonly string TorBridgesTemplate;
+        private static readonly string TorPath;
+
         static SocksWebProxyProcess()
         {
+            TorPath = Path.Combine(Environment.CurrentDirectory, "Tor", "Tor");
             TorExecutablePath = Path.Combine(Environment.CurrentDirectory, "Tor", "Tor", "tor.exe");
             KillExistingTorProcesses();
 
@@ -32,9 +36,10 @@ namespace BulbaGO.Base.ProcessManagement
             var geoip6Path = Path.Combine(torDataPath, "Tor", "geoip6");
 
             TorCommandLineTemplate =
-            "--ClientOnly 1 --SocksPort {0} --SocksBindAddress 127.0.0.1 --DataDirectory " + torDataPath +
+            "--ClientOnly 1 --SocksPort {0} --SocksBindAddress 127.0.0.1 --AllowUnverifiedNodes middle,rendezvous,exit --DataDirectory " + torDataPath +
             "\\{0} --GeoIPFile " + geoipPath + " --GeoIPv6File " + geoip6Path;
             TorCommandLineCountriesTemplate = " --ExitNodes {0} --StrictNodes 1";
+            TorBridgesTemplate = " -f torbridgeconfig.ini";
         }
 
         private static void KillExistingTorProcesses()
@@ -73,7 +78,7 @@ namespace BulbaGO.Base.ProcessManagement
                 proxyPort = PortRandomizer.Next(MinPort, MaxPort);
             }
             UsedPorts.Add(proxyPort);
-            return new SocksWebProxyProcess(bot) { TorCountries = isoTwoLetterCountryCodes, SocksPort = proxyPort, Timeout = 30000 };
+            return new SocksWebProxyProcess(bot) { TorCountries = isoTwoLetterCountryCodes, SocksPort = proxyPort, Timeout = 120000 };
         }
 
         private SocksWebProxyProcess(Bot bot) : base(bot)
@@ -95,6 +100,7 @@ namespace BulbaGO.Base.ProcessManagement
 
         private StringBuilder _consoleOutput;
         private Stopwatch _timeoutChecker;
+        private static readonly Random BridgeRandomizer=new Random();
 
         public async Task<bool> Start(CancellationToken ct)
         {
@@ -107,6 +113,11 @@ namespace BulbaGO.Base.ProcessManagement
                 torArguments += string.Format(TorCommandLineCountriesTemplate, countries);
             }
 
+            //if (BridgeRandomizer.Next(2) == 0)
+            //{
+            //    torArguments += TorBridgesTemplate;
+            //}
+
             var startInfo = new ProcessStartInfo
             {
                 FileName = TorExecutablePath,
@@ -115,8 +126,11 @@ namespace BulbaGO.Base.ProcessManagement
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 UseShellExecute = false,
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Hidden,
+                WorkingDirectory = TorPath
             };
+            ProcessExited += SocksWebProxyProcess_ProcessExited;
+            //Logger.Debug($"{TorExecutablePath} {torArguments}");
 
             await Start(startInfo, ct);
             if (State != ProcessState.Started)
@@ -135,6 +149,21 @@ namespace BulbaGO.Base.ProcessManagement
             }
             State = ProcessState.InitializationFailed;
             return false;
+        }
+
+        private void SocksWebProxyProcess_ProcessExited(AsyncProcess process)
+        {
+            if (!string.IsNullOrWhiteSpace(ExitAddress))
+            {
+                try
+                {
+                    ExitAddresses.Remove(ExitAddress);
+
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
 
         const int maxRetriesCount = 3;
@@ -190,12 +219,12 @@ namespace BulbaGO.Base.ProcessManagement
                 return false;
             }
             Country = GeoIpHelper.GetCountry(ExitAddress);
-            if (TorCountries != null && TorCountries.Count > 0 && (Country.IsoCode == null || !TorCountries.Contains(Country.IsoCode)))
-            {
-                var countries = "{" + string.Join(",", TorCountries) + "}";
-                Logger.Warn($"Proxy on port {SocksPort} has was supposed to be in {countries}, but the resulting connection ended up in {{{Country.IsoCode ?? "Unknown Country"}}}, retrying.");
-                return false;
-            }
+            //if (TorCountries != null && TorCountries.Count > 0 && (Country.IsoCode == null || !TorCountries.Contains(Country.IsoCode)))
+            //{
+            //    var countries = "{" + string.Join(",", TorCountries) + "}";
+            //    Logger.Warn($"Proxy on port {SocksPort} has was supposed to be in {countries}, but the resulting connection ended up in {{{Country.IsoCode ?? "Unknown Country"}}}, retrying.");
+            //    return false;
+            //}
             ExitAddresses.Add(ExitAddress);
             Logger.Info($"Proxy on port {SocksPort} is now connected to {Country.Name} [{Country.IsoCode}] with ip address {ExitAddress}");
             return true;

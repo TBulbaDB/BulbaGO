@@ -77,6 +77,9 @@ namespace BulbaGO.Base.Bots
         [BsonIgnore]
         public IProgress<BotProgress> Progress { get; private set; }
 
+        [BsonIgnore]
+        public BotState State { get; private set; }
+
         private CancellationTokenSource _cts;
         private CancellationToken _ct;
 
@@ -90,8 +93,9 @@ namespace BulbaGO.Base.Bots
             {
                 var bot = await GetBotFromMongoDb(username, ct);
 
-                if (bot != null && bot.Location == null)
+                if (bot != null && (bot.Location == null || bot.TwoLetterIsoCountryCode != twoLetterIsoCountryCode || bot.Location.TwoLetterIsoCountryCode!=twoLetterIsoCountryCode))
                 {
+                    bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
                     bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
                     bot.Save();
                 }
@@ -163,22 +167,28 @@ namespace BulbaGO.Base.Bots
 
         private async void ProxyProcess_ProcessExited(AsyncProcess process)
         {
+            if (State == BotState.Terminating) return;
             await StopProcesses();
-            //Logger.Warn("Restarting everything in 10 seconds.");
-            //await Task.Delay(10000);
-            //await Start(BotType);
+            Logger.Warn("Restarting everything in 10 seconds.");
+
+            State = BotState.BotError;
+            await Task.Delay(10000);
+            await Start(BotType);
         }
 
         private async void BotProcessContainer_ProcessExited(AsyncProcess process)
         {
+            if (State == BotState.Terminating) return;
             await StopProcesses();
-            //Logger.Warn("Restarting everything in 10 seconds.");
-            //await Task.Delay(10000);
-            //await Start(BotType);
+            State = BotState.BotError;
+            Logger.Warn("Restarting everything in 10 seconds.");
+            await Task.Delay(10000);
+            await Start(BotType);
         }
 
         private async Task<bool> StopProcesses()
         {
+            State = BotState.Terminating;
             if (BotProcess != null)
             {
                 await BotProcess.Stop();
@@ -189,12 +199,18 @@ namespace BulbaGO.Base.Bots
                 await ProxyProcess.Stop();
                 ProxyProcess = null;
             }
+            await Task.Delay(500);
+
+            
             return true;
         }
 
 
         public async Task Start(BotType botType, IProgress<BotProgress> progress = null, IntPtr botProcessParent = default(IntPtr))
         {
+            if (State == BotState.Running) return;
+
+            State = BotState.Running;
             Progress = progress;
             _ct.ThrowIfCancellationRequested();
             BotType = botType;
@@ -209,6 +225,11 @@ namespace BulbaGO.Base.Bots
             catch (OperationCanceledException oce)
             {
 
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"An unexpected error occured while launching the bot. [{ex.GetType().Name}] {ex.Message}\r\n{ex.StackTrace}");
+                await StopProcesses();
             }
         }
 

@@ -30,6 +30,22 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="C5, Version=2.4.5947.17248, Culture=neutral, PublicKeyToken=282361b99ded7e8e, processorArchitecture=MSIL">
+      <HintPath>..\packages\C5.2.4.5947.17249\lib\net45\C5.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GeoCoordinatePortable, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeoCoordinate.1.1.0\lib\portable-net45+wp80+win+wpa81\GeoCoordinatePortable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.0.0.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.0.0-beta4\lib\net45\Google.Protobuf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GPSOAuthSharp, Version=0.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GPSOAuthSharp.0.0.5\lib\GPSOAuthSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
@@ -58,9 +74,27 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="POGOLib, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\POGOLib.Official.0.3.0-alpha\lib\net45\POGOLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="POGOProtos, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\POGOLib.Official.0.3.0-alpha\lib\net45\POGOProtos.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="S2Geometry, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\S2Geometry.1.0.3\lib\portable-net45+wp8+win8\S2Geometry.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +103,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BotDataManagement\BotInventory.cs" />
+    <Compile Include="BotDataManagement\Candy.cs" />
+    <Compile Include="BotDataManagement\PokedexEntry.cs" />
+    <Compile Include="BotDataManagement\Pokemon.cs" />
     <Compile Include="Bots\Bot.cs" />
     <Compile Include="Bots\BotConfigFactory.cs" />
     <Compile Include="Bots\BotFactory.cs" />
@@ -76,6 +114,8 @@
     <Compile Include="Devices\DeviceSettings.cs" />
     <Compile Include="GeoLocation\Google\Elevation.cs" />
     <Compile Include="GeoLocation\StartLocation.cs" />
+    <Compile Include="BotDataManagement\BotData.cs" />
+    <Compile Include="BotDataManagement\BotDataUpdater.cs" />
     <Compile Include="ProcessManagement\AsyncProcess.cs" />
     <Compile Include="ProcessManagement\SocksWebProxyProcess.cs" />
     <Compile Include="ProcessManagement\BotProcess.cs" />
@@ -110,6 +150,7 @@
     <Compile Include="SocksProxy\SocksWebProxy\Proxy\ProxyConfig.cs" />
     <Compile Include="SocksProxy\SocksWebProxy\Proxy\ProxyListener.cs" />
     <Compile Include="SocksProxy\SocksWebProxy\SocksWebProxy.cs" />
+    <Compile Include="Utils\TimedMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Bots\NecroBot\cert.pfx">
@@ -289,7 +330,70 @@
     <None Include="Tor\Data\Tor\geoip6">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Tor\Tor\PluggableTransports\bz2.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Cipher._AES.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Hash._SHA256.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Hash._SHA512.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Random.OSRNG.winrandom.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Util.strxor.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\Crypto.Util._counter.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\fte.cDFA.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\fteproxy.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\fteproxy\defs\20131224.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\fteproxy\VERSION">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\obfsproxy.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\pyexpat.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\select.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\unicodedata.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\zope.interface._zope_interface_coptimizations.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\_ctypes.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\_hashlib.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\_socket.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\PluggableTransports\_ssl.pyd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Tor\Tor\StartTor.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Tor\Tor\torbridgeconfig.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Tor\Tor\torrc1.ini">
@@ -347,6 +451,30 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Tor\Tor\libssp-0.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\fteproxy.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\meek-client-torbrowser.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\meek-client.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\obfs4proxy.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\obfsproxy.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\python27.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\terminateprocess-buffer.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Tor\Tor\PluggableTransports\w9xpopen.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Tor\Tor\ssleay32.dll">

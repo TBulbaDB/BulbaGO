@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulbaGO.TestConsole", "Bulb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulbaGO.UI", "BulbaGO.UI\BulbaGO.UI.csproj", "{F695C4E4-0C65-4EA7-9F49-6D65A9F19387}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BulbaGO.InventoryUpdater", "BolbaGO.InventoryUpdater\BulbaGO.InventoryUpdater.csproj", "{C038CF0B-C84C-4999-8128-82C440C996EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{F695C4E4-0C65-4EA7-9F49-6D65A9F19387}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F695C4E4-0C65-4EA7-9F49-6D65A9F19387}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F695C4E4-0C65-4EA7-9F49-6D65A9F19387}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C038CF0B-C84C-4999-8128-82C440C996EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C038CF0B-C84C-4999-8128-82C440C996EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C038CF0B-C84C-4999-8128-82C440C996EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C038CF0B-C84C-4999-8128-82C440C996EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

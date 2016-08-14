@@ -152,6 +152,7 @@ namespace BulbaGO.Base.ProcessManagement
                 case ProcessState.Terminated:
                     break;
                 case ProcessState.Error:
+                    State=ProcessState.Terminating;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state, null);

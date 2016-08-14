@@ -35,11 +35,11 @@
     "MaxTravelDistanceInMeters": 5000,
     "UseGpxPathing": false,
     "GpxFile": "GPXPath.GPX",
-    "UsePokeStopLuckyNumber": true,
+    "UsePokeStopLuckyNumber": false,
     "PokestopSkipLuckyNumberMinUse": 3,
     "PokestopSkipLuckyNumber": 1,
     "PokestopSkipLuckyMin": 0,
-    "PokestopSkipLuckyMax": 4
+    "PokestopSkipLuckyMax": 10
   },
   "DelaySettings": {
     "DelayBetweenPlayerActions": 5,

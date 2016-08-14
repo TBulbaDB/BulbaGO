@@ -62,7 +62,27 @@ namespace BulbaGO.Base.Bots
             JToken locationSettings;
             if (defaultConfig.TryGetValue("LocationSettings", out locationSettings))
             {
+                var props = locationSettings.Children().Cast<JProperty>().ToList();
 
+                foreach (var prop in props)
+                {
+                    switch (prop.Name)
+                    {
+
+                        case "DefaultLatitude":
+                            prop.Value = bot.Location.Latitude;
+                            break;
+                        case "DefaultLongitude":
+                            prop.Value = bot.Location.Longitude;
+                            break;
+                        case "DefaultAltitude":
+                            prop.Value = bot.Location.Altitude;
+                            break;
+                        case "MaxTravelDistanceInMeters":
+                            prop.Value = bot.Location.MaxWalkDistance;
+                            break;
+                    }
+                }
             }
 
 

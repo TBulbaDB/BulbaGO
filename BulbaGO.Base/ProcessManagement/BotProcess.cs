@@ -66,40 +66,36 @@ namespace BulbaGO.Base.ProcessManagement
             return await base.Initialize(ct);
         }
 
-        private bool _attached;
+        //private bool _attached;
         protected override void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             base.Process_OutputDataReceived(sender, e);
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
                 Bot.BotConfig.ProcessOutputData(this, e.Data);
-                if (!_attached)
-                {
-                    if (_botProcessParent != default(IntPtr))
-                    {
-                        SetParent(Process.MainWindowHandle, _botProcessParent);
-                    }
-                    _attached = true;
-                }
+                //if (!_attached)
+                //{
+                //    if (_botProcessParent != default(IntPtr))
+                //    {
+                //        SetParent(Process.MainWindowHandle, _botProcessParent);
+                //    }
+                //    _attached = true;
+                //}
             }
-            //var whi = new WindowHandleInfo(Process.MainWindowHandle);
-            //var allWindows = whi.GetAllChildHandles();
-            //if (allWindows.Count == 0) return;Process.MainWindowHandle
 
-            //var firstWindow = whi.GetAllChildHandles()[0];
-            var textLength = GetWindowTextLength(Process.MainWindowHandle);
-            var wndStr = new StringBuilder(textLength);
-            var l = GetWindowText(Process.MainWindowHandle, wndStr, wndStr.Capacity);
-            var windowText = wndStr.ToString();
-            if (WindowTitle != windowText)
-            {
-                WindowTitle = windowText;
-                BotProgressChanged?.Invoke(new BotProgress { BotTitle = WindowTitle });
-            }
+            //var textLength = GetWindowTextLength(Process.MainWindowHandle);
+            //var wndStr = new StringBuilder(textLength);
+            //var l = GetWindowText(Process.MainWindowHandle, wndStr, wndStr.Capacity);
+            //var windowText = wndStr.ToString();
+            //if (WindowTitle != windowText)
+            //{
+            //    WindowTitle = windowText;
+            //    BotProgressChanged?.Invoke(new BotProgress { BotTitle = WindowTitle });
+            //}
         }
 
         [DllImport("user32.dll", EntryPoint = "GetWindowTextLength", SetLastError = true)]
-        internal static extern int GetWindowTextLength(IntPtr hwnd);
+        static extern int GetWindowTextLength(IntPtr hwnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
