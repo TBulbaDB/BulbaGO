@@ -25,6 +25,8 @@ namespace BulbaGO.Base.ProcessManagement
         private static readonly string TorBridgesTemplate;
         private static readonly string TorPath;
 
+        public static readonly HashSet<string> BlockedIps=new HashSet<string> { "139.59.9.200" };
+
         static SocksWebProxyProcess()
         {
             TorPath = Path.Combine(Environment.CurrentDirectory, "Tor", "Tor");
@@ -211,6 +213,11 @@ namespace BulbaGO.Base.ProcessManagement
             if (string.IsNullOrWhiteSpace(ExitAddress))
             {
                 Logger.Warn($"Proxy on port {SocksPort} has empty exit address, retrying.");
+                return false;
+            }
+            if (BlockedIps.Contains(ExitAddress))
+            {
+                Logger.Warn($"Proxy on port {SocksPort} has an blocked exit address, retrying.");
                 return false;
             }
             if (ExitAddresses.Contains(ExitAddress))

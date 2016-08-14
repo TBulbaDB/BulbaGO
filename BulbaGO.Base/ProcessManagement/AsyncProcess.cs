@@ -106,6 +106,13 @@ namespace BulbaGO.Base.ProcessManagement
 
         protected virtual void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+            {
+                if (e.Data.Contains("Niantic Servers unstable"))
+                {
+                    return;
+                }
+            }
             if (State != ProcessState.Terminating && State != ProcessState.Terminated)
             {
                 State = ProcessState.Error;

@@ -60,6 +60,24 @@ namespace BulbaGO.Base.ProcessManagement
             return false;
         }
 
+        protected override void OnProcessStateChanged(ProcessState previousState, ProcessState state)
+        {
+            if (state == ProcessState.IPBan)
+            {
+                try
+                {
+                    SocksWebProxyProcess.BlockedIps.Add(Bot.ProxyProcess.ExitAddress);
+
+                }
+                catch (Exception)
+                {
+                }
+                State = ProcessState.Error;
+                return;
+            }
+            base.OnProcessStateChanged(previousState, state);
+        }
+
         protected override async Task<bool> Initialize(CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();

@@ -110,7 +110,7 @@ namespace BulbaGO.Base.Bots
             if (data.Contains("(ATTENTION) No usable PokeStops found in your area. Is your maximum distance too small?"))
             {
                 botProcess.Logger.Error("Bot reported no pokestops around, possible ip ban, restarting bot.");
-                botProcess.State = ProcessState.Error;
+                botProcess.State = ProcessState.IPBan;
                 //TerminateProcess();
                 //_bot.Restart();
                 return;

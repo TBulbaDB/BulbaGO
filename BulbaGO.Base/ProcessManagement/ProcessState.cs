@@ -20,6 +20,7 @@ namespace BulbaGO.Base.ProcessManagement
         Running,
         Terminating,
         Terminated,
-        Error
+        Error,
+        IPBan
     }
 }
