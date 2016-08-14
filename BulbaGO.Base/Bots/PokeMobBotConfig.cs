@@ -146,6 +146,10 @@ namespace BulbaGO.Base.Bots
             }
             if (data.Contains("ERROR"))
             {
+                if (data.Contains("Niantic Servers unstable"))
+                {
+                    return;
+                }
                 botProcess.Logger.Error("Bot reported an error, restarting bot.");
                 //TerminateProcess();
                 //_bot.Restart();

@@ -1,18 +1,18 @@
 {
   "DeviceSettings": {
-    "DeviceId": "a814656cf0c511c5",
+    "DeviceId": "bbb08c98a72efded",
     "AndroidBoardName": "fleming",
     "AndroidBootLoader": "unknown",
     "DeviceBrand": "Motorola",
     "DeviceModel": "XOOM 2 ME",
-    "DeviceModelIdentifier": "Motorola Fleming_7e4060059",
+    "DeviceModelIdentifier": "Motorola Fleming_9529fb55d",
     "DeviceModelBoot": "fleming",
     "HardwareManufacturer": "Motorola",
     "HardWareModel": "XOOM 2 ME",
     "FirmwareBrand": "fleming",
     "FirmwareTags": "test-keys",
     "FirmwareType": "eng",
-    "FirmwareFingerprint": "Motorola/Motorola_fleming/9eafae/:user/d160508"
+    "FirmwareFingerprint": "Motorola/Motorola_fleming/21ec1c68/:user/b127"
   },
   "StartUpSettings": {
     "AutoUpdate": false,
@@ -21,25 +21,26 @@
     "AmountOfPokemonToDisplayOnStart": 10,
     "StartupWelcomeDelay": false,
     "TranslationLanguageCode": "en",
-    "WebSocketPort": 14251,
+    "WebSocketPort": 0,
     "DisplayPokemonMaxPoweredCp": true,
-    "DisplayPokemonMovesetRank": true
+    "DisplayPokemonMovesetRank": true,
+    "UseHumanPathing": false
   },
   "LocationSettings": {
     "Teleport": false,
-    "DefaultLatitude": 40.788565000000006,
-    "DefaultLongitude": -73.959713999999991,
-    "DefaultAltitude": 8.0,
-    "WalkingSpeedInKilometerPerHour": 35.0,
+    "DefaultLatitude": 38.394763,
+    "DefaultLongitude": 27.1491238,
+    "DefaultAltitude": 9.0,
+    "WalkingSpeedInKilometerPerHour": 42.0,
     "MaxSpawnLocationOffset": 10,
     "MaxTravelDistanceInMeters": 5000,
     "UseGpxPathing": false,
     "GpxFile": "GPXPath.GPX",
-    "UsePokeStopLuckyNumber": false,
-    "PokestopSkipLuckyNumberMinUse": 3,
+    "UsePokeStopLuckyNumber": true,
+    "PokestopSkipLuckyNumberMinUse": 5,
     "PokestopSkipLuckyNumber": 1,
     "PokestopSkipLuckyMin": 0,
-    "PokestopSkipLuckyMax": 10
+    "PokestopSkipLuckyMax": 6
   },
   "DelaySettings": {
     "DelayBetweenPlayerActions": 5,
@@ -110,11 +111,11 @@
     "TotalAmountOfGreatballsToKeep": 80,
     "TotalAmountOfUltraballsToKeep": 120,
     "TotalAmountOfMasterballsToKeep": 100,
-    "TotalAmountOfPotionsToKeep": 3,
-    "TotalAmountOfSuperPotionsToKeep": 5,
+    "TotalAmountOfPotionsToKeep": 0,
+    "TotalAmountOfSuperPotionsToKeep": 0,
     "TotalAmountOfHyperPotionsToKeep": 10,
     "TotalAmountOfMaxPotionsToKeep": 30,
-    "TotalAmountOfRevivesToKeep": 20,
+    "TotalAmountOfRevivesToKeep": 0,
     "TotalAmountOfMaxRevivesToKeep": 40,
     "TotalAmountOfRazzToKeep": 50,
     "RecycleInventoryAtUsagePercentage": 0.85

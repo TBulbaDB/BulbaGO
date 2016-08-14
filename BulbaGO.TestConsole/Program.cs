@@ -61,6 +61,8 @@ namespace BulbaGO.TestConsole
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "hildarosel297039", "jp8uwone!", "AU"));
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "delorispas512237", "81zwi5ae!", "US"));
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "yonghartse945354", "471qib82!", "AU"));
+
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB005", "qq12534", "US"));
             Task.WaitAll(bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
         }
     }
