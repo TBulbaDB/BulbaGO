@@ -54,13 +54,16 @@ namespace BulbaGO.TestConsole
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "jeffjosias921058", "re8styl5!", "US"));
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "phebewry46460765", "tua5k806!", "US"));
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "marissasar964321", "4ykaoipy!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "dennywolbe760308", "w2976827!", "AU"));
+
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "coralieesh717483", "5fqdqpw1!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "assuntadit751889", "6v3068sr!", "AU"));
+
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "marionstra543463", "x486mq77!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "hildarosel297039", "jp8uwone!", "AU"));
+
             bots.Add(await Bot.GetInstance(AuthType.Ptc, "delorispas512237", "81zwi5ae!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "yonghartse945354", "471qib82!", "AU"));
+
+            bots.Add(await Bot.GetInstance(AuthType.Ptc, "kalliemazi594061", "21pkughl!", "US"));
+            bots.Add(await Bot.GetInstance(AuthType.Ptc, "emmittteng182995", "3nc8fa2e!", "US"));
+            bots.Add(await Bot.GetInstance(AuthType.Ptc, "nohemicupp420461", "uooh4iv4!", "US"));
 
             //bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB005", "qq12534", "US"));
             Task.WaitAll(bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
