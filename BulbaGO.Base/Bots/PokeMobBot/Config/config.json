@@ -21,7 +21,7 @@
     "AmountOfPokemonToDisplayOnStart": 10,
     "StartupWelcomeDelay": false,
     "TranslationLanguageCode": "en",
-    "WebSocketPort": 0,
+    "WebSocketPort": 21001,
     "DisplayPokemonMaxPoweredCp": true,
     "DisplayPokemonMovesetRank": true,
     "UseHumanPathing": false

@@ -100,16 +100,20 @@ namespace BulbaGO.Base.ProcessManagement
                 //    _attached = true;
                 //}
             }
+            try
+            {
 
-            //var textLength = GetWindowTextLength(Process.MainWindowHandle);
-            //var wndStr = new StringBuilder(textLength);
-            //var l = GetWindowText(Process.MainWindowHandle, wndStr, wndStr.Capacity);
-            //var windowText = wndStr.ToString();
-            //if (WindowTitle != windowText)
-            //{
-            //    WindowTitle = windowText;
-            //    BotProgressChanged?.Invoke(new BotProgress { BotTitle = WindowTitle });
-            //}
+                var textLength = GetWindowTextLength(Process.MainWindowHandle);
+                var wndStr = new StringBuilder(textLength);
+                var l = GetWindowText(Process.MainWindowHandle, wndStr, wndStr.Capacity);
+                var windowText = wndStr.ToString();
+                if (WindowTitle != windowText)
+                {
+                    WindowTitle = windowText;
+                    BotProgressChanged?.Invoke(new BotProgress {BotTitle = WindowTitle});
+                }
+            }
+            catch { }
         }
 
         [DllImport("user32.dll", EntryPoint = "GetWindowTextLength", SetLastError = true)]

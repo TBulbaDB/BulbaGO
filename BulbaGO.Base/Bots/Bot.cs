@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BulbaGO.Base.Devices;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.MongoDB;
 using BulbaGO.Base.ProcessManagement;
+using BulbaGO.Base.Scheduler;
 using log4net;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -46,6 +44,7 @@ namespace BulbaGO.Base.Bots
         Terminated
     }
 
+    [BsonIgnoreExtraElements]
     public class Bot
     {
         [BsonId]
@@ -57,8 +56,12 @@ namespace BulbaGO.Base.Bots
         public StartLocation Location { get; set; }
         public DeviceSettings DeviceSettings { get; set; }
 
+        public BotSchedule Schedule { get; set; }
+
+        [BsonIgnore]
         public BotType BotType { get; set; }
 
+        [BsonIgnore]
         public IBotConfig BotConfig { get; set; }
 
 
@@ -92,17 +95,25 @@ namespace BulbaGO.Base.Bots
             try
             {
                 var bot = await GetBotFromMongoDb(username, ct);
-
-                if (bot != null && (bot.Location == null || bot.TwoLetterIsoCountryCode != twoLetterIsoCountryCode || bot.Location.TwoLetterIsoCountryCode!=twoLetterIsoCountryCode))
+                if (bot != null)
                 {
-                    bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
-                    bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
-                    bot.Save();
-                }
-                if (bot != null && bot.DeviceSettings == null)
-                {
-                    bot.DeviceSettings = new DeviceSettings();
-                    bot.Save();
+                    if (bot.Location == null || bot.TwoLetterIsoCountryCode != twoLetterIsoCountryCode ||
+                        bot.Location.TwoLetterIsoCountryCode != twoLetterIsoCountryCode)
+                    {
+                        bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
+                        bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
+                        bot.Save();
+                    }
+                    if (bot.DeviceSettings == null)
+                    {
+                        bot.DeviceSettings = new DeviceSettings();
+                        bot.Save();
+                    }
+                    if (bot.Schedule == null)
+                    {
+                        bot.Schedule = BotSchedule.Generate();
+                        bot.Save();
+                    }
                 }
                 if (bot == null)
                 {
@@ -113,6 +124,7 @@ namespace BulbaGO.Base.Bots
                     bot.TwoLetterIsoCountryCode = twoLetterIsoCountryCode;
                     bot.Location = await StartLocationProvider.GetRandomStartLocation(twoLetterIsoCountryCode, ct);
                     bot.DeviceSettings = new DeviceSettings();
+                    bot.Schedule = BotSchedule.Generate();
                     bot.Save();
                 }
                 bot._cts = cts;
@@ -120,7 +132,7 @@ namespace BulbaGO.Base.Bots
                 bot.Logger = LogManager.GetLogger(bot.Username);
                 return bot;
             }
-            catch (OperationCanceledException osc)
+            catch (OperationCanceledException)
             {
 
             }
@@ -162,6 +174,7 @@ namespace BulbaGO.Base.Bots
 
         private void BotProcess_BotProgressChanged(BotProgress progress)
         {
+            Logger.Info(progress.BotTitle);
             Progress?.Report(progress);
         }
 
@@ -201,7 +214,7 @@ namespace BulbaGO.Base.Bots
             }
             await Task.Delay(500);
 
-            
+
             return true;
         }
 
@@ -222,7 +235,7 @@ namespace BulbaGO.Base.Bots
                     await BotProcess.Start(_ct, botProcessParent);
                 }
             }
-            catch (OperationCanceledException oce)
+            catch (OperationCanceledException)
             {
 
             }

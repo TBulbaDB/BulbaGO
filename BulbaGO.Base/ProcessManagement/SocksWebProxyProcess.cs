@@ -22,7 +22,7 @@ namespace BulbaGO.Base.ProcessManagement
         private static readonly string TorCommandLineTemplate;
         private static readonly string TorCommandLineCountriesTemplate;
 
-        private static readonly string TorBridgesTemplate;
+        //private static readonly string TorBridgesTemplate;
         private static readonly string TorPath;
 
         public static readonly HashSet<string> BlockedIps=new HashSet<string> { "139.59.9.200" };
@@ -41,7 +41,7 @@ namespace BulbaGO.Base.ProcessManagement
             "--ClientOnly 1 --SocksPort {0} --SocksBindAddress 127.0.0.1 --AllowUnverifiedNodes middle,rendezvous,exit --DataDirectory " + torDataPath +
             "\\{0} --GeoIPFile " + geoipPath + " --GeoIPv6File " + geoip6Path;
             TorCommandLineCountriesTemplate = " --ExitNodes {0} --StrictNodes 1";
-            TorBridgesTemplate = " -f torbridgeconfig.ini";
+            //TorBridgesTemplate = " -f torbridgeconfig.ini";
         }
 
         private static void KillExistingTorProcesses()
@@ -168,8 +168,8 @@ namespace BulbaGO.Base.ProcessManagement
             }
         }
 
-        const int maxRetriesCount = 3;
-        private int currentRetryNumber = 0;
+        //const int maxRetriesCount = 3;
+        //private int currentRetryNumber = 0;
         protected override async Task<bool> Initialize(CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();

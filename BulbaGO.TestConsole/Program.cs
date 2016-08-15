@@ -9,13 +9,19 @@ using BulbaGO.Base.Context;
 using BulbaGO.Base.GeoLocation;
 using BulbaGO.Base.GeoLocation.Google;
 using BulbaGO.Base.Logging;
+using BulbaGO.Base.Scheduler;
+using BulbaGO.Base.Utils;
 using log4net.Core;
+using Timer = System.Timers.Timer;
 
 namespace BulbaGO.TestConsole
 {
     class Program
     {
         private static readonly Mutex Mutex = new Mutex(true, "BulbaGO.TestConsole");
+        private static readonly List<Bot> Bots = new List<Bot>();
+        private static readonly Timer HeartbeatTimer = new Timer(1000);
+
 
         static void Main(string[] args)
         {
@@ -31,6 +37,7 @@ namespace BulbaGO.TestConsole
 
             //InventoryDownloader.UpdateInventory("TBulbaDB001");
 
+            HeartbeatTimer.Elapsed += HeartbeatTimer_Elapsed;
             Task.Run(async () =>
             {
                 await MainAsync();
@@ -41,32 +48,44 @@ namespace BulbaGO.TestConsole
             //}).Wait();
         }
 
+        private static void HeartbeatTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            HeartbeatTimer.Stop();
+            Task.Run(async () =>
+            {
+                var botsToStop = Bots.Where(b => b.Schedule != null && !b.Schedule.IsInScheduledTime()).ToList();
+                if (botsToStop.Count == 0) return;
+                foreach (var bot in botsToStop)
+                {
+                    await bot.Stop();
+                }
+            });
+            HeartbeatTimer.Start();
+        }
+
         private static async Task MainAsync()
         {
-         var bots=new List<Bot>();
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "ceciliakea637271", "xfkc7vpu!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "vickeyshul420902", "hnzgl4iz!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "trevanince766390", "37rh6quj!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "parismchug190803", "q77x8s7z!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "mellissane373075", "k26er6c7!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "edgardobyk937315", "70vknjv0!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "clintonkor908603", "wn4kozq5!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "jeffjosias921058", "re8styl5!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "phebewry46460765", "tua5k806!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "marissasar964321", "4ykaoipy!", "US"));
+            //HeartbeatTimer.Start();
 
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "coralieesh717483", "5fqdqpw1!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "ceciliakea637271", "xfkc7vpu!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "vickeyshul420902", "hnzgl4iz!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "trevanince766390", "37rh6quj!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "parismchug190803", "q77x8s7z!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "mellissane373075", "k26er6c7!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "edgardobyk937315", "70vknjv0!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "clintonkor908603", "wn4kozq5!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "jeffjosias921058", "re8styl5!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "phebewry46460765", "tua5k806!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "marissasar964321", "4ykaoipy!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "coralieesh717483", "5fqdqpw1!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "marionstra543463", "x486mq77!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "delorispas512237", "81zwi5ae!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "kalliemazi594061", "21pkughl!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "emmittteng182995", "3nc8fa2e!", "US"));
+            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "nohemicupp420461", "uooh4iv4!", "US"));
 
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "marionstra543463", "x486mq77!", "US"));
-
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "delorispas512237", "81zwi5ae!", "US"));
-
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "kalliemazi594061", "21pkughl!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "emmittteng182995", "3nc8fa2e!", "US"));
-            bots.Add(await Bot.GetInstance(AuthType.Ptc, "nohemicupp420461", "uooh4iv4!", "US"));
-
-            //bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB005", "qq12534", "US"));
-            Task.WaitAll(bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
+            Bots.Add(await Bot.GetInstance(AuthType.Ptc, "TBulbaDB002", "qq12534", "US"));
+            Task.WaitAll(Bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
         }
     }
 }
