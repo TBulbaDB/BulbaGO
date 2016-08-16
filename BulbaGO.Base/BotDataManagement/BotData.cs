@@ -14,7 +14,7 @@ namespace BulbaGO.Base.BotDataManagement
 
         public BotInventory Inventory { get; set; }
 
-        
+
         public void UpdateInventory(POGOLib.Pokemon.Inventory inventory)
         {
             Inventory = new BotInventory();
@@ -64,7 +64,8 @@ namespace BulbaGO.Base.BotDataManagement
                         NumUpgrades = data.NumUpgrades,
                         AdditionalCpMultiplier = data.AdditionalCpMultiplier,
                         Favorite = data.Favorite,
-                        Nickname = data.Nickname
+                        Nickname = data.Nickname,
+                        Quality = PokemonInfo.CalculatePokemonPerfection(data)
                     };
                     Inventory.Pokemons.Add(pokemon);
 

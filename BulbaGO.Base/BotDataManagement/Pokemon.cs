@@ -29,5 +29,6 @@ namespace BulbaGO.Base.BotDataManagement
         public float AdditionalCpMultiplier { get; set; }
         public int Favorite { get; set; }
         public string Nickname { get; set; }
+        public double Quality { get; set; }
     }
 }

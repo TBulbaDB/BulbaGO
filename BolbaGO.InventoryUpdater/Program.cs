@@ -25,30 +25,23 @@ namespace BulbaGO.InventoryUpdater
 
             Task.Run(async () =>
             {
-                //var updateInventoryTask = BotDataUpdater.UpdateInventory("TBulbaDB003");
-                //updateInventoryTask.Wait(30000);
-
-                if (await BotDataUpdater.UpdateInventory("TBulbaDB001"))
-                {
-                    BotDataUpdater.Logger.Info("Waiting 30 seconds");
-                    await Task.Delay(TimeSpan.FromSeconds(30));
-                }
 
                 if (await BotDataUpdater.UpdateInventory("TBulbaDB002"))
                 {
                     BotDataUpdater.Logger.Info("Waiting 30 seconds");
                     await Task.Delay(TimeSpan.FromSeconds(30));
                 }
-                if (await BotDataUpdater.UpdateInventory("TBulbaDB004"))
-                {
-                    BotDataUpdater.Logger.Info("Waiting 30 seconds");
-                    await Task.Delay(TimeSpan.FromSeconds(30));
-                }
-                if (await BotDataUpdater.UpdateInventory("TBulbaDB005"))
-                {
-                    BotDataUpdater.Logger.Info("Waiting 30 seconds");
-                    await Task.Delay(TimeSpan.FromSeconds(30));
-                }
+
+                //if (await BotDataUpdater.UpdateInventory("jeffjosias921058"))
+                //{
+                //    BotDataUpdater.Logger.Info("Waiting 30 seconds");
+                //    await Task.Delay(TimeSpan.FromSeconds(30));
+                //}
+                //if (await BotDataUpdater.UpdateInventory("marissasar964321"))
+                //{
+                //    BotDataUpdater.Logger.Info("Waiting 30 seconds");
+                //    await Task.Delay(TimeSpan.FromSeconds(30));
+                //}
 
             }).Wait();
 

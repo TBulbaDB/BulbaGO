@@ -103,8 +103,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BotDataManagement\BaseStats.cs" />
     <Compile Include="BotDataManagement\BotInventory.cs" />
     <Compile Include="BotDataManagement\Candy.cs" />
+    <Compile Include="BotDataManagement\PokemonInfo.cs" />
     <Compile Include="BotDataManagement\PokedexEntry.cs" />
     <Compile Include="BotDataManagement\Pokemon.cs" />
     <Compile Include="Bots\Bot.cs" />

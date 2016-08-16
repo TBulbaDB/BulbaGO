@@ -31,7 +31,7 @@
     "DefaultLatitude": 38.394763,
     "DefaultLongitude": 27.1491238,
     "DefaultAltitude": 9.0,
-    "WalkingSpeedInKilometerPerHour": 42.0,
+    "WalkingSpeedInKilometerPerHour": 14.0,
     "MaxSpawnLocationOffset": 10,
     "MaxTravelDistanceInMeters": 5000,
     "UseGpxPathing": false,
