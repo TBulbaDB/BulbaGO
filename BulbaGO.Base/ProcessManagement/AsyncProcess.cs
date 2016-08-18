@@ -11,11 +11,14 @@ using log4net.Core;
 
 namespace BulbaGO.Base.ProcessManagement
 {
-    public delegate void ProcessStateChangedEventHandler(ProcessState previousState, ProcessState state);
+    public delegate void ProcessStateChangedEventHandler(AsyncProcess process, ProcessState previousState, ProcessState state);
     public delegate void ProcessExited(AsyncProcess process);
 
     public abstract class AsyncProcess : IDisposable
     {
+
+        public event ProcessStateChangedEventHandler ProcessStateChanged;
+
         protected Bot Bot { get; set; }
         protected AsyncProcess(Bot bot)
         {
@@ -60,7 +63,7 @@ namespace BulbaGO.Base.ProcessManagement
                 EnableRaisingEvents = true,
                 StartInfo = processStartInfo
             };
-            
+
             Process.Exited += Process_Exited;
             Process.ErrorDataReceived += Process_ErrorDataReceived;
             Process.OutputDataReceived += Process_OutputDataReceived;
@@ -159,11 +162,12 @@ namespace BulbaGO.Base.ProcessManagement
                 case ProcessState.Terminated:
                     break;
                 case ProcessState.Error:
-                    State=ProcessState.Terminating;
+                    State = ProcessState.Terminating;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }
+            ProcessStateChanged?.Invoke(this, previousState, state);
         }
 
         public void Dispose()
@@ -172,8 +176,6 @@ namespace BulbaGO.Base.ProcessManagement
             Process?.Dispose();
         }
 
-        protected virtual void OnOutputDataReceived()
-        {
-        }
+
     }
 }

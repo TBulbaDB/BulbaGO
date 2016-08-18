@@ -66,17 +66,7 @@ namespace BulbaGO.TestConsole
         private static async Task MainAsync()
         {
             //HeartbeatTimer.Start();
-
-            Bots.Add(await Bot.GetInstance(AuthType.Ptc, "ceciliakea637271", "xfkc7vpu!", "US"));
-
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "trevanince766390", "37rh6quj!", "US"));
-            Bots.Add(await Bot.GetInstance(AuthType.Ptc, "parismchug190803", "q77x8s7z!", "US"));
-            Bots.Add(await Bot.GetInstance(AuthType.Ptc, "mellissane373075", "k26er6c7!", "US"));
-
-            Bots.Add(await Bot.GetInstance(AuthType.Ptc, "clintonkor908603", "wn4kozq5!", "US"));
-
-
-
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "dennywolbe760308", "w2976827!", "US"));
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "coralieesh717483", "5fqdqpw1!", "US"));
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "assuntadit751889", "6v3068sr!", "US"));
@@ -84,8 +74,6 @@ namespace BulbaGO.TestConsole
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "hildarosel297039", "jp8uwone!", "US"));
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "delorispas512237", "81zwi5ae!", "US"));
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "yonghartse945354", "471qib82!", "US"));
-
-
             Bots.Add(await Bot.GetInstance(AuthType.Ptc, "nohemicupp420461", "uooh4iv4!", "US"));
             Task.WaitAll(Bots.Select(b => b.Start(BotType.PokeMobBot)).ToArray());
         }

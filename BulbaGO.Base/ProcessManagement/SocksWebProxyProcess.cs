@@ -25,7 +25,7 @@ namespace BulbaGO.Base.ProcessManagement
         //private static readonly string TorBridgesTemplate;
         private static readonly string TorPath;
 
-        public static readonly HashSet<string> BlockedIps=new HashSet<string> { "139.59.9.200" };
+        public static readonly HashSet<string> BlockedIps = new HashSet<string> { "139.59.9.200" };
 
         static SocksWebProxyProcess()
         {
@@ -38,7 +38,7 @@ namespace BulbaGO.Base.ProcessManagement
             var geoip6Path = Path.Combine(torDataPath, "Tor", "geoip6");
 
             TorCommandLineTemplate =
-            "--ClientOnly 1 --SocksPort {0} --SocksBindAddress 127.0.0.1 --AllowUnverifiedNodes middle,rendezvous,exit --DataDirectory " + torDataPath +
+            "--ClientOnly 1 --SocksPort {0} --SocksBindAddress 127.0.0.1 --NewCircuitPeriod 30000000 --AllowUnverifiedNodes middle,rendezvous,exit --DataDirectory " + torDataPath +
             "\\{0} --GeoIPFile " + geoipPath + " --GeoIPv6File " + geoip6Path;
             TorCommandLineCountriesTemplate = " --ExitNodes {0} --StrictNodes 1";
             //TorBridgesTemplate = " -f torbridgeconfig.ini";
@@ -62,26 +62,42 @@ namespace BulbaGO.Base.ProcessManagement
         private static readonly HashSet<int> UsedPorts = new HashSet<int>();
         private static readonly HashSet<string> ExitAddresses = new HashSet<string>();
 
-        public static SocksWebProxyProcess GetInstance(Bot bot)
+        public static SocksWebProxyProcess GetInstance(Bot bot, int socksPort = 0)
         {
-            return GetInstance(bot, new List<string>());
+            return GetInstance(bot, new List<string>(), socksPort);
         }
 
-        public static SocksWebProxyProcess GetInstance(Bot bot, string isoTwoLetterCountryCode)
+        public static SocksWebProxyProcess GetInstance(Bot bot, string isoTwoLetterCountryCode, int socksPort = 0)
         {
-            return GetInstance(bot, new List<string> { isoTwoLetterCountryCode });
+            return GetInstance(bot, new List<string> { isoTwoLetterCountryCode }, socksPort);
         }
 
-        public static SocksWebProxyProcess GetInstance(Bot bot, List<string> isoTwoLetterCountryCodes)
+        public static SocksWebProxyProcess GetInstance(Bot bot, List<string> isoTwoLetterCountryCodes, int socksPort = 0)
         {
-            var proxyPort = PortRandomizer.Next(MinPort, MaxPort);
-            while (UsedPorts.Contains(proxyPort) || IpTools.IsPortInUse(proxyPort) || IpTools.IsPortInUse(proxyPort + 1000))
+            int proxyPort;
+            if (socksPort == 0)
             {
                 proxyPort = PortRandomizer.Next(MinPort, MaxPort);
+                while (UsedPorts.Contains(proxyPort) || IpTools.IsPortInUse(proxyPort) ||
+                       IpTools.IsPortInUse(proxyPort + 1000))
+                {
+                    proxyPort = PortRandomizer.Next(MinPort, MaxPort);
+                }
+                UsedPorts.Add(proxyPort);
             }
-            UsedPorts.Add(proxyPort);
+            else
+            {
+                proxyPort = socksPort;
+            }
             return new SocksWebProxyProcess(bot) { TorCountries = isoTwoLetterCountryCodes, SocksPort = proxyPort, Timeout = 120000 };
         }
+
+        public static SocksWebProxyProcess GetInstance(string loggerName, string isoTwoLetterCountryCode, int socksPort)
+        {
+            var fakeBot = new Bot { Username = loggerName };
+            return GetInstance(fakeBot, isoTwoLetterCountryCode, socksPort);
+        }
+
 
         private SocksWebProxyProcess(Bot bot) : base(bot)
         {
@@ -102,7 +118,7 @@ namespace BulbaGO.Base.ProcessManagement
 
         private StringBuilder _consoleOutput;
         private Stopwatch _timeoutChecker;
-        private static readonly Random BridgeRandomizer=new Random();
+        private static readonly Random BridgeRandomizer = new Random();
 
         public async Task<bool> Start(CancellationToken ct)
         {
