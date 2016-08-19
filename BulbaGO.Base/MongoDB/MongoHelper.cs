@@ -13,8 +13,8 @@ namespace BulbaGO.Base.MongoDB
 
         static MongoHelper()
         {
-            var connectionString = "mongodb://localhost/BulbaGO";
-            //var connectionString = "mongodb://web1.checkoid.lc,web2.checkoid.lc/BulbaGO";
+            //var connectionString = "mongodb://localhost/BulbaGO";
+            var connectionString = "mongodb://web1.checkoid.lc,web2.checkoid.lc/BulbaGO";
             DefaultDatabase = MongoUrl.Create(connectionString).DatabaseName;
             Client = new MongoClient(connectionString);
         }
