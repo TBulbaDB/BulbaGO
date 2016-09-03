@@ -19,8 +19,8 @@ namespace PoGoMITM.Launcher.Plugins
         public bool Enabled => true;
 
         public const string PluginName = "LocationModifier";
-        private const double DestinationLatitude = 38.450409;
-        private const double DestinationLongitude = 27.211379;
+        private const double DestinationLatitude = 51.514696;
+        private const double DestinationLongitude = -0.135880;
 
         private static readonly ILog Logger = LogManager.GetLogger(PluginName);
 
