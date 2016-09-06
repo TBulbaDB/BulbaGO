@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Google.Common.Geometry;
 using log4net;
@@ -12,22 +10,21 @@ using POGOProtos.Networking.Responses;
 
 namespace PoGoMITM.Launcher.Plugins
 {
-
-    // INCOMPLETE - DO NOT USE
-    public class LocationModifier : IModifierPlugin
+    public class LocationModifierBase : IModifierPlugin
     {
+        public const string PluginName = "LocationModifier";
+
         public bool Enabled => true;
 
-        public const string PluginName = "LocationModifier";
-        private const double DestinationLatitude = 51.514696;
-        private const double DestinationLongitude = -0.135880;
+        public double DestinationLatitude => 40.754054;
+        public double DestinationLongitude => -73.984336;
 
-        private static readonly ILog Logger = LogManager.GetLogger(PluginName);
+        public static readonly ILog Logger = LogManager.GetLogger(PluginName);
 
         public bool ModifyRequest(RequestContext requestContext)
         {
             Logger.Debug("Modifying the request");
-            var requestData = requestContext.RequestData;
+            var requestData = requestContext.ModifiedRequestData ?? requestContext.RequestData;
 
             var changed = false;
 
@@ -61,8 +58,11 @@ namespace PoGoMITM.Launcher.Plugins
                         changed = true;
                     }
                 }
+                //requestData.DecryptedSignature.GpsInfo = null;
+                //changed = true;
+
             }
-            
+
 
             if (requestData.Requests == null) return false;
             foreach (var request in requestData.Requests)
@@ -366,7 +366,7 @@ namespace PoGoMITM.Launcher.Plugins
         public bool ModifyResponse(RequestContext requestContext)
         {
             Logger.Debug("Modifying the response");
-            var responseData = requestContext.ResponseData;
+            var responseData = requestContext.ModifiedResponseData ?? requestContext.ResponseData;
             var changed = false;
 
             if (responseData.Responses == null) return false;
@@ -375,7 +375,7 @@ namespace PoGoMITM.Launcher.Plugins
                 switch (response.Key)
                 {
                     case RequestType.AddFortModifier:
-                        var addFortModifierResponse = (AddFortModifierResponse) response.Value;
+                        var addFortModifierResponse = (AddFortModifierResponse)response.Value;
                         if (addFortModifierResponse.FortDetails != null)
                         {
                             addFortModifierResponse.FortDetails.Latitude =
@@ -386,7 +386,7 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.AttackGym:
-                        var attackGymResponse = (AttackGymResponse) response.Value;
+                        var attackGymResponse = (AttackGymResponse)response.Value;
                         break;
                     case RequestType.BuyGemPack:
                         //var buyGemPackResponse = (BuyGemPackResponse)response.Value;
@@ -395,25 +395,25 @@ namespace PoGoMITM.Launcher.Plugins
                         //var buyItemPackResponse = (BuyItemPackResponse)response.Value;
                         break;
                     case RequestType.CatchPokemon:
-                        var catchPokemonResponse = (CatchPokemonResponse) response.Value;
+                        var catchPokemonResponse = (CatchPokemonResponse)response.Value;
                         break;
                     case RequestType.CheckAwardedBadges:
-                        var checkAwardedBadgesResponse = (CheckAwardedBadgesResponse) response.Value;
+                        var checkAwardedBadgesResponse = (CheckAwardedBadgesResponse)response.Value;
                         break;
                     case RequestType.CheckChallenge:
-                        var checkChallengeResponse = (CheckChallengeResponse) response.Value;
+                        var checkChallengeResponse = (CheckChallengeResponse)response.Value;
                         break;
                     case RequestType.CheckCodenameAvailable:
-                        var checkCodenameAvailableResponse = (CheckCodenameAvailableResponse) response.Value;
+                        var checkCodenameAvailableResponse = (CheckCodenameAvailableResponse)response.Value;
                         break;
                     case RequestType.ClaimCodename:
-                        var claimCodenameResponse = (ClaimCodenameResponse) response.Value;
+                        var claimCodenameResponse = (ClaimCodenameResponse)response.Value;
                         break;
                     case RequestType.CollectDailyBonus:
-                        var collectDailyBonusResponse = (CollectDailyBonusResponse) response.Value;
+                        var collectDailyBonusResponse = (CollectDailyBonusResponse)response.Value;
                         break;
                     case RequestType.CollectDailyDefenderBonus:
-                        var collectDailyDefenderBonusResponse = (CollectDailyDefenderBonusResponse) response.Value;
+                        var collectDailyDefenderBonusResponse = (CollectDailyDefenderBonusResponse)response.Value;
                         break;
                     case RequestType.DebugDeletePlayer:
                         //var debugDeletePlayerResponse = (DebugDeletePlayerResponse)response.Value;
@@ -422,22 +422,22 @@ namespace PoGoMITM.Launcher.Plugins
                         //var debugUpdateInventoryResponse = (DebugUpdateInventoryResponse)response.Value;
                         break;
                     case RequestType.DiskEncounter:
-                        var diskEncounterResponse = (DiskEncounterResponse) response.Value;
+                        var diskEncounterResponse = (DiskEncounterResponse)response.Value;
                         break;
                     case RequestType.DownloadItemTemplates:
-                        var downloadItemTemplatesResponse = (DownloadItemTemplatesResponse) response.Value;
+                        var downloadItemTemplatesResponse = (DownloadItemTemplatesResponse)response.Value;
                         break;
                     case RequestType.DownloadRemoteConfigVersion:
-                        var downloadRemoteConfigVersionResponse = (DownloadRemoteConfigVersionResponse) response.Value;
+                        var downloadRemoteConfigVersionResponse = (DownloadRemoteConfigVersionResponse)response.Value;
                         break;
                     case RequestType.DownloadSettings:
-                        var downloadSettingsResponse = (DownloadSettingsResponse) response.Value;
+                        var downloadSettingsResponse = (DownloadSettingsResponse)response.Value;
                         break;
                     case RequestType.Echo:
-                        var echoResponse = (EchoResponse) response.Value;
+                        var echoResponse = (EchoResponse)response.Value;
                         break;
                     case RequestType.Encounter:
-                        var encounterResponse = (EncounterResponse) response.Value;
+                        var encounterResponse = (EncounterResponse)response.Value;
                         if (encounterResponse.WildPokemon != null)
                         {
                             encounterResponse.WildPokemon.Latitude =
@@ -448,16 +448,16 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.EncounterTutorialComplete:
-                        var encounterTutorialCompleteResponse = (EncounterTutorialCompleteResponse) response.Value;
+                        var encounterTutorialCompleteResponse = (EncounterTutorialCompleteResponse)response.Value;
                         break;
                     case RequestType.EquipBadge:
-                        var equipBadgeResponse = (EquipBadgeResponse) response.Value;
+                        var equipBadgeResponse = (EquipBadgeResponse)response.Value;
                         break;
                     case RequestType.EvolvePokemon:
-                        var evolvePokemonResponse = (EvolvePokemonResponse) response.Value;
+                        var evolvePokemonResponse = (EvolvePokemonResponse)response.Value;
                         break;
                     case RequestType.FortDeployPokemon:
-                        var fortDeployPokemonResponse = (FortDeployPokemonResponse) response.Value;
+                        var fortDeployPokemonResponse = (FortDeployPokemonResponse)response.Value;
                         if (fortDeployPokemonResponse.FortDetails != null)
                         {
                             fortDeployPokemonResponse.FortDetails.Latitude =
@@ -476,13 +476,13 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.FortDetails:
-                        var fortDetailsResponse = (FortDetailsResponse) response.Value;
+                        var fortDetailsResponse = (FortDetailsResponse)response.Value;
                         fortDetailsResponse.Latitude = GetOriginalLatitude(fortDetailsResponse.Latitude);
                         fortDetailsResponse.Longitude = GetOriginalLongitude(fortDetailsResponse.Longitude);
                         changed = true;
                         break;
                     case RequestType.FortRecallPokemon:
-                        var fortRecallPokemonResponse = (FortRecallPokemonResponse) response.Value;
+                        var fortRecallPokemonResponse = (FortRecallPokemonResponse)response.Value;
                         if (fortRecallPokemonResponse.FortDetails != null)
                         {
                             fortRecallPokemonResponse.FortDetails.Latitude =
@@ -493,19 +493,19 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.FortSearch:
-                        var fortSearchResponse = (FortSearchResponse) response.Value;
+                        var fortSearchResponse = (FortSearchResponse)response.Value;
                         break;
                     case RequestType.GetAssetDigest:
-                        var getAssetDigestResponse = (GetAssetDigestResponse) response.Value;
+                        var getAssetDigestResponse = (GetAssetDigestResponse)response.Value;
                         break;
                     case RequestType.GetBuddyWalked:
-                        var getBuddyWalkedResponse = (GetBuddyWalkedResponse) response.Value;
+                        var getBuddyWalkedResponse = (GetBuddyWalkedResponse)response.Value;
                         break;
                     case RequestType.GetDownloadUrls:
-                        var getDownloadUrlsResponse = (GetDownloadUrlsResponse) response.Value;
+                        var getDownloadUrlsResponse = (GetDownloadUrlsResponse)response.Value;
                         break;
                     case RequestType.GetGymDetails:
-                        var getGymDetailsResponse = (GetGymDetailsResponse) response.Value;
+                        var getGymDetailsResponse = (GetGymDetailsResponse)response.Value;
                         if (getGymDetailsResponse.GymState?.FortData != null)
                         {
                             getGymDetailsResponse.GymState.FortData.Latitude =
@@ -516,22 +516,22 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.GetHatchedEggs:
-                        var getHatchedEggsResponse = (GetHatchedEggsResponse) response.Value;
+                        var getHatchedEggsResponse = (GetHatchedEggsResponse)response.Value;
                         break;
                     case RequestType.GetIncensePokemon:
-                        var getIncensePokemonResponse = (GetIncensePokemonResponse) response.Value;
+                        var getIncensePokemonResponse = (GetIncensePokemonResponse)response.Value;
                         getIncensePokemonResponse.Latitude = GetOriginalLatitude(getIncensePokemonResponse.Latitude);
                         getIncensePokemonResponse.Longitude = GetOriginalLongitude(getIncensePokemonResponse.Longitude);
                         changed = true;
                         break;
                     case RequestType.GetInventory:
-                        var getInventoryResponse = (GetInventoryResponse) response.Value;
+                        var getInventoryResponse = (GetInventoryResponse)response.Value;
                         break;
                     case RequestType.GetItemPack:
                         //var getItemPackResponse = (GetItemPackResponse)response.Value;
                         break;
                     case RequestType.GetMapObjects:
-                        var mapObjectsResponse = (GetMapObjectsResponse) response.Value;
+                        var mapObjectsResponse = (GetMapObjectsResponse)response.Value;
 
                         var mapCells = mapObjectsResponse.MapCells.ToList();
                         mapObjectsResponse.MapCells.Clear();
@@ -573,37 +573,37 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.GetPlayer:
-                        var getPlayerResponse = (GetPlayerResponse) response.Value;
+                        var getPlayerResponse = (GetPlayerResponse)response.Value;
                         break;
                     case RequestType.GetPlayerProfile:
-                        var getPlayerProfileResponse = (GetPlayerProfileResponse) response.Value;
+                        var getPlayerProfileResponse = (GetPlayerProfileResponse)response.Value;
                         break;
                     case RequestType.GetSuggestedCodenames:
-                        var getSuggestedCodenamesResponse = (GetSuggestedCodenamesResponse) response.Value;
+                        var getSuggestedCodenamesResponse = (GetSuggestedCodenamesResponse)response.Value;
                         break;
                     case RequestType.IncenseEncounter:
-                        var incenseEncounterResponse = (IncenseEncounterResponse) response.Value;
+                        var incenseEncounterResponse = (IncenseEncounterResponse)response.Value;
                         break;
                     case RequestType.ItemUse:
                         //var itemUseResponse = (ItemUseResponse)response.Value;
                         break;
                     case RequestType.LevelUpRewards:
-                        var levelUpRewardsResponse = (LevelUpRewardsResponse) response.Value;
+                        var levelUpRewardsResponse = (LevelUpRewardsResponse)response.Value;
                         break;
                     case RequestType.LoadSpawnPoints:
                         //var loadSpawnPointsResponse = (LoadSpawnPointsResponse)response.Value;
                         break;
                     case RequestType.MarkTutorialComplete:
-                        var markTutorialCompleteResponse = (MarkTutorialCompleteResponse) response.Value;
+                        var markTutorialCompleteResponse = (MarkTutorialCompleteResponse)response.Value;
                         break;
                     case RequestType.MethodUnset:
                         //var methodUnsetResponse = (MethodUnsetResponse)response.Value;
                         break;
                     case RequestType.NicknamePokemon:
-                        var nicknamePokemonResponse = (NicknamePokemonResponse) response.Value;
+                        var nicknamePokemonResponse = (NicknamePokemonResponse)response.Value;
                         break;
                     case RequestType.PlayerUpdate:
-                        var playerUpdateResponse = (PlayerUpdateResponse) response.Value;
+                        var playerUpdateResponse = (PlayerUpdateResponse)response.Value;
                         if (playerUpdateResponse.Forts != null)
                         {
                             foreach (var fortData in playerUpdateResponse.Forts)
@@ -624,31 +624,31 @@ namespace PoGoMITM.Launcher.Plugins
                         }
                         break;
                     case RequestType.RecycleInventoryItem:
-                        var recycleInventoryItemResponse = (RecycleInventoryItemResponse) response.Value;
+                        var recycleInventoryItemResponse = (RecycleInventoryItemResponse)response.Value;
                         break;
                     case RequestType.ReleasePokemon:
-                        var releasePokemonResponse = (ReleasePokemonResponse) response.Value;
+                        var releasePokemonResponse = (ReleasePokemonResponse)response.Value;
                         break;
                     case RequestType.SetAvatar:
-                        var setAvatarResponse = (SetAvatarResponse) response.Value;
+                        var setAvatarResponse = (SetAvatarResponse)response.Value;
                         break;
                     case RequestType.SetBuddyPokemon:
-                        var setBuddyPokemonResponse = (SetBuddyPokemonResponse) response.Value;
+                        var setBuddyPokemonResponse = (SetBuddyPokemonResponse)response.Value;
                         break;
                     case RequestType.SetContactSettings:
-                        var setContactSettingsResponse = (SetContactSettingsResponse) response.Value;
+                        var setContactSettingsResponse = (SetContactSettingsResponse)response.Value;
                         break;
                     case RequestType.SetFavoritePokemon:
-                        var setFavoritePokemonResponse = (SetFavoritePokemonResponse) response.Value;
+                        var setFavoritePokemonResponse = (SetFavoritePokemonResponse)response.Value;
                         break;
                     case RequestType.SetPlayerTeam:
-                        var setPlayerTeamResponse = (SetPlayerTeamResponse) response.Value;
+                        var setPlayerTeamResponse = (SetPlayerTeamResponse)response.Value;
                         break;
                     case RequestType.SfidaAction:
                         //var sfidaActionResponse = (SfidaActionResponse)response.Value;
                         break;
                     case RequestType.SfidaActionLog:
-                        var sfidaActionLogResponse = (SfidaActionLogResponse) response.Value;
+                        var sfidaActionLogResponse = (SfidaActionLogResponse)response.Value;
                         break;
                     case RequestType.SfidaCapture:
                         //var sfidaCaptureResponse = (SfidaCaptureResponse)response.Value;
@@ -666,7 +666,7 @@ namespace PoGoMITM.Launcher.Plugins
                         //var sfidaUpdateResponse = (SfidaUpdateResponse)response.Value;
                         break;
                     case RequestType.StartGymBattle:
-                        var startGymBattleResponse = (StartGymBattleResponse) response.Value;
+                        var startGymBattleResponse = (StartGymBattleResponse)response.Value;
                         break;
                     case RequestType.TradeOffer:
                         //var tradeOfferResponse = (TradeOfferResponse)response.Value;
@@ -681,34 +681,34 @@ namespace PoGoMITM.Launcher.Plugins
                         //var tradeSearchResponse = (TradeSearchResponse)response.Value;
                         break;
                     case RequestType.UpgradePokemon:
-                        var upgradePokemonResponse = (UpgradePokemonResponse) response.Value;
+                        var upgradePokemonResponse = (UpgradePokemonResponse)response.Value;
                         break;
                     case RequestType.UseIncense:
-                        var useIncenseResponse = (UseIncenseResponse) response.Value;
+                        var useIncenseResponse = (UseIncenseResponse)response.Value;
                         break;
                     case RequestType.UseItemCapture:
-                        var useItemCaptureResponse = (UseItemCaptureResponse) response.Value;
+                        var useItemCaptureResponse = (UseItemCaptureResponse)response.Value;
                         break;
                     case RequestType.UseItemEggIncubator:
-                        var useItemEggIncubatorResponse = (UseItemEggIncubatorResponse) response.Value;
+                        var useItemEggIncubatorResponse = (UseItemEggIncubatorResponse)response.Value;
                         break;
                     case RequestType.UseItemFlee:
                         //var useItemFleeResponse = (UseItemFleeResponse)response.Value;
                         break;
                     case RequestType.UseItemGym:
-                        var useItemGymResponse = (UseItemGymResponse) response.Value;
+                        var useItemGymResponse = (UseItemGymResponse)response.Value;
                         break;
                     case RequestType.UseItemPotion:
-                        var useItemPotionResponse = (UseItemPotionResponse) response.Value;
+                        var useItemPotionResponse = (UseItemPotionResponse)response.Value;
                         break;
                     case RequestType.UseItemRevive:
-                        var useItemReviveResponse = (UseItemReviveResponse) response.Value;
+                        var useItemReviveResponse = (UseItemReviveResponse)response.Value;
                         break;
                     case RequestType.UseItemXpBoost:
-                        var useItemXpBoostResponse = (UseItemXpBoostResponse) response.Value;
+                        var useItemXpBoostResponse = (UseItemXpBoostResponse)response.Value;
                         break;
                     case RequestType.VerifyChallenge:
-                        var verifyChallengeResponse = (VerifyChallengeResponse) response.Value;
+                        var verifyChallengeResponse = (VerifyChallengeResponse)response.Value;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -728,13 +728,13 @@ namespace PoGoMITM.Launcher.Plugins
 
         private bool HandleRequestLatitude(double latitude, bool useAsStarter = true)
         {
-            if (useAsStarter && Math.Abs(StartingLatitude) < 0.001 && latitude > 0 && latitude < 360)
+            if (useAsStarter && Math.Abs(StartingLatitude) < 0.001 && Math.Abs(latitude - 360) > 0.01 && Math.Abs(latitude - (-360)) > 0.01 && Math.Abs(latitude) > 0.01)
             {
                 StartingLatitude = latitude;
                 Logger.Debug($"Setting the starting latitude to {latitude}");
             }
 
-            if (Math.Abs(StartingLatitude) > 0.001 && latitude > 0 && latitude < 360)
+            if (Math.Abs(StartingLatitude) > 0.001 && Math.Abs(latitude) > 0.01 && Math.Abs(latitude - 360) > 0.01 && Math.Abs(latitude - (-360)) > 0.01)
             {
                 //Logger.Debug($"Latitude: {latitude}");
                 //Logger.Debug($"Modified latitude is {GetModifiedLatitude(latitude)}");
@@ -745,13 +745,13 @@ namespace PoGoMITM.Launcher.Plugins
 
         private bool HandleRequestLongitude(double longitude, bool useAsStarter = true)
         {
-            if (useAsStarter && Math.Abs(StartingLongitude) < 0.001 && longitude > 0 && longitude < 360)
+            if (useAsStarter && Math.Abs(StartingLongitude) < 0.001 && Math.Abs(longitude - 360) > 0.01 && Math.Abs(longitude - (-360)) > 0.01 && Math.Abs(longitude) > 0.01)
             {
                 StartingLongitude = longitude;
                 Logger.Debug($"Setting the starting longitude to {longitude}");
             }
 
-            if (Math.Abs(StartingLongitude) > 0.001 && longitude > 0 && longitude < 360)
+            if (Math.Abs(StartingLongitude) > 0.001 && Math.Abs(longitude) > 0.01 && Math.Abs(longitude - 360) > 0.01 && Math.Abs(longitude - (-360)) > 0.01)
             {
                 //Logger.Debug($"Longitude: {longitude}");
                 //Logger.Debug($"Modified longitude is {GetModifiedLongitude(longitude)}");
@@ -760,7 +760,7 @@ namespace PoGoMITM.Launcher.Plugins
             return false;
         }
 
-        private static double StartingLatitude
+        private double StartingLatitude
         {
             get { return _startingLatitude; }
             set
@@ -771,7 +771,7 @@ namespace PoGoMITM.Launcher.Plugins
             }
         }
 
-        private static double StartingLongitude
+        private double StartingLongitude
         {
             get { return _startingLongitude; }
             set
@@ -782,29 +782,29 @@ namespace PoGoMITM.Launcher.Plugins
             }
         }
 
-        private static double GetModifiedLatitude(double latitude)
+        private double GetModifiedLatitude(double latitude)
         {
             return latitude + _offsetLatitude;
         }
 
-        private static double GetModifiedLongitude(double longitude)
+        private double GetModifiedLongitude(double longitude)
         {
             return longitude + _offsetLongitude;
         }
 
-        private static double GetOriginalLatitude(double latitude)
+        private double GetOriginalLatitude(double latitude)
         {
             return latitude - _offsetLatitude;
         }
 
-        private static double GetOriginalLongitude(double longitude)
+        private double GetOriginalLongitude(double longitude)
         {
             return longitude - _offsetLongitude;
         }
 
-        private static readonly ConcurrentDictionary<ulong, ulong> CellConversion = new ConcurrentDictionary<ulong, ulong>();
+        private readonly ConcurrentDictionary<ulong, ulong> CellConversion = new ConcurrentDictionary<ulong, ulong>();
 
-        private static ulong GetModifiedS2Cell(ulong cellId)
+        private ulong GetModifiedS2Cell(ulong cellId)
         {
             var s2Cell = new S2CellId(cellId);
             var latlng = s2Cell.ToLatLng();
@@ -819,7 +819,7 @@ namespace PoGoMITM.Launcher.Plugins
             return newCellId.Id;
         }
 
-        private static ulong GetOriginalS2Cell(ulong cellId)
+        private ulong GetOriginalS2Cell(ulong cellId)
         {
             ulong result;
 
