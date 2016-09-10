@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Google.Common.Geometry;
 using log4net;
@@ -10,20 +11,20 @@ using POGOProtos.Networking.Responses;
 
 namespace PoGoMITM.Launcher.Plugins
 {
-    public class LocationModifierBase : IModifierPlugin
+    public class LocationModifier : IModifierPlugin
     {
         public const string PluginName = "LocationModifier";
 
         public bool Enabled => true;
 
-        public double DestinationLatitude => 40.754054;
-        public double DestinationLongitude => -73.984336;
+        public double DestinationLatitude { get; set; } = 40.754054;
+        public double DestinationLongitude { get; set; } = -73.984336;
 
         public static readonly ILog Logger = LogManager.GetLogger(PluginName);
 
         public bool ModifyRequest(RequestContext requestContext)
         {
-            Logger.Debug("Modifying the request");
+
             var requestData = requestContext.ModifiedRequestData ?? requestContext.RequestData;
 
             var changed = false;
@@ -47,13 +48,13 @@ namespace PoGoMITM.Launcher.Plugins
                 {
                     if (HandleRequestLatitude(locationFix.Latitude, false))
                     {
-                        locationFix.Latitude = (float)GetModifiedLatitude(locationFix.Latitude);
+                        locationFix.Latitude = (float)GetModifiedLatitude(locationFix.Latitude, true);
                         //Logger.Debug($"Changed requestContext.DecryptedSignature.LocationFix.Latitude");
                         changed = true;
                     }
                     if (HandleRequestLongitude(locationFix.Longitude, false))
                     {
-                        locationFix.Longitude = (float)GetModifiedLongitude(locationFix.Longitude);
+                        locationFix.Longitude = (float)GetModifiedLongitude(locationFix.Longitude, true);
                         //Logger.Debug($"Changed requestContext.DecryptedSignature.LocationFix.Longitude");
                         changed = true;
                     }
@@ -219,7 +220,7 @@ namespace PoGoMITM.Launcher.Plugins
                         mapObjectsRequest.Latitude = GetModifiedLatitude(mapObjectsRequest.Latitude);
                         mapObjectsRequest.Longitude = GetModifiedLongitude(mapObjectsRequest.Longitude);
                         var originalCellIds = mapObjectsRequest.CellId.ToList();
-                        var calculatedCells = originalCellIds.Select(GetModifiedS2Cell).ToList();
+                        var calculatedCells = GetModifiedS2Cells(originalCellIds, mapObjectsRequest.Latitude, mapObjectsRequest.Longitude);
                         mapObjectsRequest.CellId.Clear();
                         mapObjectsRequest.CellId.AddRange(calculatedCells);
                         changed = true;
@@ -359,13 +360,16 @@ namespace PoGoMITM.Launcher.Plugins
                         throw new ArgumentOutOfRangeException();
                 }
             }
+            if (changed)
+            {
+                Logger.Debug("Modified the request");
+            }
             return changed;
         }
 
 
         public bool ModifyResponse(RequestContext requestContext)
         {
-            Logger.Debug("Modifying the response");
             var responseData = requestContext.ModifiedResponseData ?? requestContext.ResponseData;
             var changed = false;
 
@@ -714,6 +718,10 @@ namespace PoGoMITM.Launcher.Plugins
                         throw new ArgumentOutOfRangeException();
                 }
             }
+            if (changed)
+            {
+                Logger.Debug("Modified the response");
+            }
             return changed;
         }
 
@@ -721,10 +729,10 @@ namespace PoGoMITM.Launcher.Plugins
         {
         }
 
-        private static double _startingLatitude;
-        private static double _startingLongitude;
-        private static double _offsetLatitude;
-        private static double _offsetLongitude;
+        private double _startingLatitude;
+        private double _startingLongitude;
+        private double _offsetLatitude;
+        private double _offsetLongitude;
 
         private bool HandleRequestLatitude(double latitude, bool useAsStarter = true)
         {
@@ -782,40 +790,101 @@ namespace PoGoMITM.Launcher.Plugins
             }
         }
 
-        private double GetModifiedLatitude(double latitude)
+        private const double TOLERANCE = 0.001;
+
+        private double GetModifiedLatitude(double latitude, bool isGpsData = false)
         {
+            if (Math.Abs(latitude) < TOLERANCE || Math.Abs(latitude - 360) < TOLERANCE || Math.Abs(latitude - (-360)) < TOLERANCE)
+            {
+                return latitude;
+            }
+            if (Math.Abs(_offsetLatitude) < TOLERANCE)
+            {
+                Logger.Warn("Attempted to get modified latitude without offset set");
+                return isGpsData ? Math.Abs(latitude) / latitude * 360 : 0;
+            }
             return latitude + _offsetLatitude;
         }
 
-        private double GetModifiedLongitude(double longitude)
+        private double GetModifiedLongitude(double longitude, bool isGpsData = false)
         {
+            if (Math.Abs(longitude) < TOLERANCE || Math.Abs(longitude - 360) < TOLERANCE || Math.Abs(longitude - (-360)) < TOLERANCE)
+            {
+                return longitude;
+            }
+            if (Math.Abs(_offsetLongitude) < TOLERANCE)
+            {
+                Logger.Warn("Attempted to get modified longitude without offset set");
+                return isGpsData ? Math.Abs(longitude) / longitude * 360 : 0;
+            }
             return longitude + _offsetLongitude;
         }
 
         private double GetOriginalLatitude(double latitude)
         {
+            if (Math.Abs(latitude) < TOLERANCE)
+            {
+                return latitude;
+            }
+            if (Math.Abs(_offsetLatitude) < TOLERANCE)
+            {
+                return 0;
+            }
             return latitude - _offsetLatitude;
         }
 
         private double GetOriginalLongitude(double longitude)
         {
+            if (Math.Abs(longitude) < TOLERANCE)
+            {
+                return longitude;
+            }
+            if (Math.Abs(_offsetLongitude) < TOLERANCE)
+            {
+                return 0;
+            }
             return longitude - _offsetLongitude;
         }
 
         private readonly ConcurrentDictionary<ulong, ulong> CellConversion = new ConcurrentDictionary<ulong, ulong>();
 
-        private ulong GetModifiedS2Cell(ulong cellId)
+        private List<ulong> GetModifiedS2Cells(IList<ulong> originalCells, double originalCenterLat, double originalCenterLon)
         {
+
+            var originalCenter = GetCellCenterLatLng(originalCenterLat, originalCenterLon);
+            var modifiedCenterLat = GetModifiedLatitude(originalCenterLat);
+            var modifiedCenterLon = GetModifiedLongitude(originalCenterLon);
+            var modifiedCenter = GetCellCenterLatLng(modifiedCenterLat, modifiedCenterLon);
+
+            var originalLatOffset = originalCenterLat - originalCenter.LatDegrees;
+            var originalLonOffset = originalCenterLon - originalCenter.LngDegrees;
+
+            var modifiedLatOffset = modifiedCenterLat - modifiedCenter.LatDegrees;
+            var modifiedLonOffset = modifiedCenterLon - modifiedCenter.LngDegrees;
+
+            var modifiedCells = originalCells.Select(o => GetModifiedS2Cell(o, originalLatOffset - modifiedLatOffset, originalLonOffset - modifiedLonOffset)).ToList();
+            return modifiedCells;
+        }
+
+        public static S2LatLng GetCellCenterLatLng(double latitude, double longitude)
+        {
+            var centerLatLng = S2LatLng.FromDegrees(latitude, longitude);
+            var centerCell = S2CellId.FromLatLng(centerLatLng);
+            var centerParent = centerCell.ParentForLevel(15);
+            return centerParent.ToLatLng();
+        }
+
+        private ulong GetModifiedS2Cell(ulong cellId, double latModifier, double lonModifier)
+        {
+
             var s2Cell = new S2CellId(cellId);
             var latlng = s2Cell.ToLatLng();
 
-            var latLong = S2LatLng.FromDegrees(GetModifiedLatitude(latlng.LatDegrees), GetModifiedLongitude(latlng.LngDegrees)).Normalized.ToPoint();
-
-            var cell = S2CellId.FromPoint(latLong);
+            var newLatLng = S2LatLng.FromDegrees(GetModifiedLatitude(latlng.LatDegrees) + latModifier, GetModifiedLongitude(latlng.LngDegrees) + lonModifier);
+            var cell = S2CellId.FromLatLng(newLatLng);
             var newCellId = cell.ParentForLevel(s2Cell.Level);
 
             CellConversion.TryAdd(newCellId.Id, cellId);
-
             return newCellId.Id;
         }
 
